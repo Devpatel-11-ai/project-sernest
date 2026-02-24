@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Register — SerNest{% endblock %}
+
+{% block content %}
+<section class="hero" style="min-height:100vh;align-items:center;justify-content:center;padding-top:100px;padding-bottom:60px">
+  <div class="hero-orb hero-orb-1"></div>
+  <div class="hero-orb hero-orb-2"></div>
+
+  <div style="width:100%;max-width:480px;position:relative;z-index:2">
+    <div style="background:rgba(8,14,30,0.8);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:44px 40px;box-shadow:0 30px 80px rgba(0,0,0,0.5)">
+      
+      <div style="text-align:center;margin-bottom:32px">
+        <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;margin-bottom:6px">
+          <span style="color:#4f6ef7">Ser</span>Nest
+        </div>
+        <h1 style="font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:700;margin-bottom:8px">Create Account</h1>
+        <p style="color:rgba(240,244,255,0.5);font-size:0.88rem">Join thousands of happy homeowners</p>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <div>
+            <label style="display:block;font-size:0.8rem;font-weight:600;color:rgba(240,244,255,0.5);margin-bottom:6px">First Name</label>
+            <input type="text" name="first_name" class="search-input" placeholder="Dev" style="width:100%;padding:12px 14px" required>
+          </div>
+          <div>
+            <label style="display:block;font-size:0.8rem;font-weight:600;color:rgba(240,244,255,0.5);margin-bottom:6px">Last Name</label>
+            <input type="text" name="last_name" class="search-input" placeholder="Patel" style="width:100%;padding:12px 14px" required>
+          </div>
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:0.8rem;font-weight:600;color:rgba(240,244,255,0.5);margin-bottom:6px">Email Address</label>
+          <input type="email" name="email" class="search-input" placeholder="you@example.com" style="width:100%;padding:12px 16px" required>
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:0.8rem;font-weight:600;color:rgba(240,244,255,0.5);margin-bottom:6px">Phone Number</label>
+          <input type="tel" name="phone" class="search-input" placeholder="+91 XXXXX XXXXX" style="width:100%;padding:12px 16px">
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:0.8rem;font-weight:600;color:rgba(240,244,255,0.5);margin-bottom:6px">City</label>
+          <input type="text" name="city" class="search-input" placeholder="Ahmedabad" style="width:100%;padding:12px 16px">
+        </div>
+        <div style="margin-bottom:24px">
+          <label style="display:block;font-size:0.8rem;font-weight:600;color:rgba(240,244,255,0.5);margin-bottom:6px">Password</label>
+          <input type="password" name="password" class="search-input" placeholder="Create a strong password" style="width:100%;padding:12px 16px" required>
+        </div>
+        <button type="submit" class="btn-primary btn-large" style="width:100%;text-align:center;border-radius:12px">Create Account</button>
+      </form>
+
+      <div style="text-align:center;margin-top:20px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.06)">
+        <p style="color:rgba(240,244,255,0.5);font-size:0.88rem">Already have an account? <a href="{% url 'login' %}" style="color:#a5b4fc;text-decoration:none;font-weight:600">Sign in</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

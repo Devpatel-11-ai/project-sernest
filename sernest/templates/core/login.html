@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Login — serNest{% endblock %}
+
+{% block content %}
+<section class="hero" style="min-height:100vh;align-items:center;justify-content:center">
+  <div class="hero-orb hero-orb-1"></div>
+  <div class="hero-orb hero-orb-2"></div>
+
+  <div style="width:100%;max-width:440px;position:relative;z-index:2">
+    <div style="background:rgba(8,14,30,0.8);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:44px 40px;box-shadow:0 30px 80px rgba(0,0,0,0.5)">
+      
+      <div style="text-align:center;margin-bottom:36px">
+        <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;margin-bottom:6px">
+          <span style="color:#4f6ef7">Ser</span>Nest
+        </div>
+        <h1 style="font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:700;margin-bottom:8px">Welcome back</h1>
+        <p style="color:rgba(240,244,255,0.5);font-size:0.88rem">Sign in to your account</p>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        <div style="margin-bottom:18px">
+          <label style="display:block;font-size:0.82rem;font-weight:600;color:rgba(240,244,255,0.6);margin-bottom:8px;letter-spacing:0.3px">Email Address</label>
+          <input type="email" name="email" class="search-input" placeholder="you@example.com" style="width:100%;padding:13px 16px" required>
+        </div>
+        <div style="margin-bottom:24px">
+          <label style="display:block;font-size:0.82rem;font-weight:600;color:rgba(240,244,255,0.6);margin-bottom:8px;letter-spacing:0.3px">Password</label>
+          <input type="password" name="password" class="search-input" placeholder="••••••••" style="width:100%;padding:13px 16px" required>
+          <div style="text-align:right;margin-top:8px">
+            <a href="#" style="font-size:0.8rem;color:#a5b4fc;text-decoration:none">Forgot password?</a>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary btn-large" style="width:100%;text-align:center;border-radius:12px">Sign In</button>
+      </form>
+
+      <div style="text-align:center;margin-top:24px;padding-top:24px;border-top:1px solid rgba(255,255,255,0.06)">
+        <p style="color:rgba(240,244,255,0.5);font-size:0.88rem">Don't have an account? <a href="{% url 'register' %}" style="color:#a5b4fc;text-decoration:none;font-weight:600">Sign up free</a></p>
+        <p style="color:rgba(240,244,255,0.5);font-size:0.88rem;margin-top:10px">Are you a service provider? <a href="{% url 'provider_register' %}" style="color:#a5b4fc;text-decoration:none;font-weight:600">Join here</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

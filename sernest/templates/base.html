@@ -1,0 +1,104 @@
+{% load static %}
+{% url 'core:home' %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>{% load static %}
+<link rel="stylesheet" href="{% static 'sernest/css/sernest.css' %}">   
+</head>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SerNest — Home Service, Done Right{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar" id="navbar">
+  <a href="{% url 'core:home' %}" class="nav-logo">
+    <div>
+      <span class="nav-logo-text"><span class="ser">Ser</span><span class="nest">Nest</span></span>
+      <span class="nav-tagline">Home Service, Done Right</span>
+    </div>
+  </a>
+
+  <ul class="nav-links">
+    <li><a href="{% url 'core:home' %}" {% if request.resolver_match.url_name == 'home' %}class="active"{% endif %}>Home</a></li>
+    <li class="nav-dropdown">
+      <a href="{% url 'categories' %}" {% if request.resolver_match.url_name == 'categories' %}class="active"{% endif %}>Categories ▾</a>
+      <div class="dropdown-menu">
+        <a href="{% url 'categories' %}#electrical"><span class="cat-icon">⚡</span> Electrical</a>
+        <a href="{% url 'categories' %}#plumbing"><span class="cat-icon">🔧</span> Plumbing</a>
+        <a href="{% url 'categories' %}#cleaning"><span class="cat-icon">🧹</span> Cleaning</a>
+        <a href="{% url 'categories' %}#carpentry"><span class="cat-icon">🪚</span> Carpentry</a>
+        <a href="{% url 'categories' %}#painting"><span class="cat-icon">🖌️</span> Painting</a>
+        <a href="{% url 'categories' %}#ac"><span class="cat-icon">❄️</span> AC Repair</a>
+        <a href="{% url 'categories' %}">View All →</a>
+      </div>
+    </li>
+    <li><a href="{% url 'about' %}" {% if request.resolver_match.url_name == 'about' %}class="active"{% endif %}>About</a></li>
+    <li><a href="{% url 'contact' %}" {% if request.resolver_match.url_name == 'contact' %}class="active"{% endif %}>Contact</a></li>
+  </ul>
+
+  <div class="nav-cta">
+    <a href="{% url 'login' %}" class="btn-ghost">Sign In</a>
+    <a href="{% url 'register' %}" class="btn-primary">Get Started</a>
+  </div>
+
+  <button class="nav-mobile-toggle" aria-label="Menu">☰</button>
+</nav>
+
+<!-- ===== MAIN CONTENT ===== -->
+{% block content %}{% endblock %}
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="brand-text"><span class="ser">Ser</span>Nest</div>
+      <p class="footer-tagline">Connecting you with trusted local service professionals. Home Service, Done Right — every time.</p>
+    </div>
+    <div>
+      <h4 class="footer-heading">Services</h4>
+      <ul class="footer-links">
+        <li><a href="#">Electrical</a></li>
+        <li><a href="#">Plumbing</a></li>
+        <li><a href="#">Cleaning</a></li>
+        <li><a href="#">Carpentry</a></li>
+        <li><a href="#">AC Repair</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="footer-heading">Company</h4>
+      <ul class="footer-links">
+        <li><a href="{% url 'about' %}">About Us</a></li>
+        <li><a href="{% url 'contact' %}">Contact</a></li>
+        <li><a href="{% url 'provider_register' %}">Become a Provider</a></li>
+        <li><a href="#">Privacy Policy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="footer-heading">Support</h4>
+      <ul class="footer-links">
+        <li><a href="#">Help Center</a></li>
+        <li><a href="#">Booking Guide</a></li>
+        <li><a href="#">Safety</a></li>
+        <li><a href="#">Terms</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p class="footer-copy">© 2025 SerNest. Built by Dev Patel. All rights reserved.</p>
+    <p class="footer-copy">Made with ❤️ for seamless home services</p>
+  </div>
+</footer>
+
+<script src="{% static 'js/main.js' %}"></script>
+{% block extra_js %}{% endblock %}
+<body>
+<div class="orb-bottom-right"></div>
+<div class="orb-center"></div>
+</html>

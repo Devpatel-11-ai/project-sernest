@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}SerNest — Home Service, Done Right{% endblock %}
+
+{% block content %}
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="hero-orb hero-orb-1"></div>
+  <div class="hero-orb hero-orb-2"></div>
+  <div class="hero-orb hero-orb-3"></div>
+
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      Trusted by 10,000+ homeowners across India
+    </div>
+
+    <h1 class="hero-title">
+      Home Services,<br>
+      <span class="gradient-text">Done Right.</span>
+    </h1>
+
+    <p class="hero-subtitle">
+      Book verified local professionals for electrical, plumbing, cleaning, and more — in minutes. Quality guaranteed.
+    </p>
+
+    <div class="hero-actions">
+      <a href="{% url 'categories' %}" class="btn-large btn-hero-primary">Browse Services</a>
+      <a href="{% url 'provider_register' %}" class="btn-large btn-hero-secondary">Become a Provider</a>
+    </div>
+
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-num"><span data-count="500">500+</span></div>
+        <div class="hero-stat-label">Verified Providers</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num"><span data-count="10000">10,000+</span></div>
+        <div class="hero-stat-label">Happy Customers</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num"><span data-count="9">9</span></div>
+        <div class="hero-stat-label">Service Categories</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating card visuals -->
+  <div class="hero-visual">
+    <div class="hero-float-card">
+      <div style="background:rgba(8,14,30,0.85);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:20px 24px;min-width:260px;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <div style="width:36px;height:36px;background:linear-gradient(135deg,#4f6ef7,#7c3aed);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem">⚡</div>
+          <div>
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;color:#f0f4ff">Electrician Booked</div>
+            <div style="font-size:0.75rem;color:rgba(240,244,255,0.5)">Today, 3:00 PM</div>
+          </div>
+        </div>
+        <div style="background:rgba(79,110,247,0.1);border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:0.8rem;color:#a5b4fc">Status</span>
+          <span style="font-size:0.78rem;font-weight:600;color:#4ade80;background:rgba(74,222,128,0.1);border-radius:50px;padding:3px 10px">Confirmed ✓</span>
+        </div>
+      </div>
+
+      <div style="background:rgba(8,14,30,0.85);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:16px 20px;margin-top:12px;min-width:220px;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+        <div style="font-size:0.78rem;color:rgba(240,244,255,0.4);margin-bottom:6px;font-family:'Syne',sans-serif;font-weight:600;letter-spacing:0.5px;text-transform:uppercase">Average Rating</div>
+        <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#f0f4ff;line-height:1">4.9 <span style="color:#fbbf24;font-size:1.2rem">★</span></div>
+        <div style="font-size:0.78rem;color:rgba(240,244,255,0.4);margin-top:4px">from 3,200+ reviews</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SEARCH ===== -->
+<section class="search-section">
+  <div class="search-glass animate-on-scroll">
+    <p class="search-label">What service do you need?</p>
+    <div class="search-row">
+      <div class="search-input-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" placeholder="e.g. Electrical repair, AC service, Plumbing...">
+      </div>
+      <div class="search-input-wrap" style="max-width:200px">
+        <span class="search-icon">📍</span>
+        <input type="text" class="search-input" placeholder="Your city">
+      </div>
+      <button class="search-btn">Find Providers</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CATEGORIES ===== -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-eyebrow">Browse by Service</span>
+    <h2 class="section-title">What can we help<br>you with today?</h2>
+    <p class="section-sub">Choose from our wide range of professional home services</p>
+  </div>
+
+  <div class="categories-grid">
+    {% for cat in categories %}
+    <a href="{% url 'categories' %}#{{ cat.name|lower }}" class="category-card animate-on-scroll">
+      <div class="cat-icon-wrap">{{ cat.icon }}</div>
+      <div class="cat-name">{{ cat.name }}</div>
+      <div class="cat-desc">{{ cat.desc }}</div>
+      <span class="cat-count">{{ cat.count }}</span>
+    </a>
+    {% endfor %}
+  </div>
+
+  <div style="text-align:center;margin-top:36px">
+    <a href="{% url 'categories' %}" class="btn-ghost btn-large">View All Categories →</a>
+  </div>
+</section>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section class="section" style="background:linear-gradient(180deg, transparent, rgba(79,110,247,0.03), transparent)">
+  <div class="section-header">
+    <span class="section-eyebrow">Simple Process</span>
+    <h2 class="section-title">How SerNest Works</h2>
+    <p class="section-sub">Get professional home services in 3 easy steps</p>
+  </div>
+
+  <div class="steps-grid">
+    <div class="step-card animate-on-scroll">
+      <div class="step-number">01</div>
+      <div class="step-title">Search & Browse</div>
+      <p class="step-desc">Filter providers by location, price, rating, and availability. Compare profiles and reviews.</p>
+    </div>
+    <div class="step-card animate-on-scroll">
+      <div class="step-number">02</div>
+      <div class="step-title">Book Instantly</div>
+      <p class="step-desc">Select your date & time slot. The provider confirms within minutes. Online or cash payment.</p>
+    </div>
+    <div class="step-card animate-on-scroll">
+      <div class="step-number">03</div>
+      <div class="step-title">Service & Review</div>
+      <p class="step-desc">Professional arrives at your door. After completion, rate your experience and pay.</p>
+    </div>
+    <div class="step-card animate-on-scroll">
+      <div class="step-number">04</div>
+      <div class="step-title">100% Satisfaction</div>
+      <p class="step-desc">Issues? Raise a complaint and our admin team resolves disputes — guaranteed resolution.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== WHY CHOOSE US ===== -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-eyebrow">Why SerNest</span>
+    <h2 class="section-title">Built for trust &<br>transparency</h2>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card animate-on-scroll">
+      <span class="feature-icon">✅</span>
+      <div class="feature-title">Verified Professionals</div>
+      <p class="feature-desc">Every provider is background-checked and verified by our admin team before going live.</p>
+    </div>
+    <div class="feature-card animate-on-scroll">
+      <span class="feature-icon">💳</span>
+      <div class="feature-title">Secure Payments</div>
+      <p class="feature-desc">Pay online via gateway or cash after service. Invoices generated automatically.</p>
+    </div>
+    <div class="feature-card animate-on-scroll">
+      <span class="feature-icon">⭐</span>
+      <div class="feature-title">Real Reviews</div>
+      <p class="feature-desc">Ratings and reviews are moderated by admins. No fake reviews, ever.</p>
+    </div>
+    <div class="feature-card animate-on-scroll">
+      <span class="feature-icon">🛡️</span>
+      <div class="feature-title">Complaint Resolution</div>
+      <p class="feature-desc">Raise complaints and get timely resolutions from our dedicated support team.</p>
+    </div>
+    <div class="feature-card animate-on-scroll">
+      <span class="feature-icon">🎯</span>
+      <div class="feature-title">Smart Matching</div>
+      <p class="feature-desc">Our system ranks and filters providers by proximity, availability, and rating.</p>
+    </div>
+    <div class="feature-card animate-on-scroll">
+      <span class="feature-icon">🏷️</span>
+      <div class="feature-title">Offers & Discounts</div>
+      <p class="feature-desc">Exclusive promotions from providers directly through the SerNest platform.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="section">
+  <div class="cta-banner animate-on-scroll">
+    <h2 class="cta-title">Ready to get started?</h2>
+    <p class="cta-sub">Join thousands of happy homeowners who trust SerNest for all their home service needs.</p>
+    <div class="cta-actions">
+      <a href="{% url 'register' %}" class="btn-large btn-hero-primary">Book a Service Now</a>
+      <a href="{% url 'provider_register' %}" class="btn-large btn-hero-secondary">Join as Provider</a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

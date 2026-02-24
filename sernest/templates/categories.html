@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Categories — SerNest{% endblock %}
+
+{% block content %}
+<section class="hero" style="min-height:45vh;padding-top:120px">
+  <div class="hero-orb hero-orb-1" style="opacity:0.5"></div>
+  <div class="hero-content" style="text-align:center;max-width:100%;width:100%">
+    <div class="hero-badge"><span class="hero-badge-dot"></span>9 Service Categories</div>
+    <h1 class="hero-title" style="font-size:clamp(2.2rem,5vw,4rem)">All <span class="gradient-text">Services</span></h1>
+    <p class="hero-subtitle" style="margin:0 auto 32px">Browse and book from our complete range of verified home services</p>
+
+    <div style="max-width:480px;margin:0 auto;position:relative">
+      <span style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:rgba(240,244,255,0.4)">🔍</span>
+      <input type="text" class="search-input" placeholder="Search services..." style="width:100%;padding-left:44px;font-size:1rem;padding-top:14px;padding-bottom:14px;border-radius:50px">
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:20px">
+  <div class="categories-grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr))">
+    {% for cat in categories %}
+    <a href="#" class="category-card animate-on-scroll" id="{{ cat.name|lower }}">
+      <div class="cat-icon-wrap">{{ cat.icon }}</div>
+      <div class="cat-name">{{ cat.name }}</div>
+      <div class="cat-desc">{{ cat.desc }}</div>
+      <span class="cat-count">{{ cat.count }}+ Providers</span>
+      <div style="margin-top:14px;font-size:0.82rem;color:rgba(240,244,255,0.35);display:flex;align-items:center;gap:5px">View providers →</div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="cta-banner animate-on-scroll">
+    <h2 class="cta-title">Can't find your service?</h2>
+    <p class="cta-sub">Contact us and we'll help you find the right professional for any home service need.</p>
+    <div class="cta-actions">
+      <a href="{% url 'contact' %}" class="btn-large btn-hero-primary">Contact Us</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}About — SerNest{% endblock %}
+
+{% block content %}
+<section class="hero" style="min-height:50vh;padding-top:130px">
+  <div class="hero-orb hero-orb-1" style="opacity:0.4"></div>
+  <div class="hero-content" style="text-align:center;width:100%;max-width:100%">
+    <div class="hero-badge"><span class="hero-badge-dot"></span>Our Story</div>
+    <h1 class="hero-title" style="font-size:clamp(2rem,5vw,4rem)">Built to make home<br><span class="gradient-text">services seamless</span></h1>
+    <p class="hero-subtitle" style="margin:0 auto;max-width:540px">SerNest was created to bridge the gap between homeowners and trusted local service professionals using smart technology and human verification.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;margin-bottom:80px" class="animate-on-scroll">
+    <div>
+      <span class="section-eyebrow">Our Mission</span>
+      <h2 class="section-title" style="text-align:left;font-size:2.2rem">Connecting homes<br>with trusted hands</h2>
+      <p style="color:rgba(240,244,255,0.6);line-height:1.8;margin-bottom:20px">SerNest is a Local Service Management System that connects homeowners with verified professionals across 9 service categories — from electrical to plumbing, cleaning to carpentry.</p>
+      <p style="color:rgba(240,244,255,0.6);line-height:1.8">Every provider is background-verified by our admin team. Every booking is tracked. Every payment is secure. And every complaint is resolved.</p>
+    </div>
+    <div style="background:rgba(79,110,247,0.05);border:1px solid rgba(79,110,247,0.15);border-radius:20px;padding:36px;display:grid;grid-template-columns:1fr 1fr;gap:24px">
+      <div style="text-align:center;padding:20px;background:rgba(255,255,255,0.03);border-radius:14px">
+        <div style="font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;color:#4f6ef7">500+</div>
+        <div style="font-size:0.82rem;color:rgba(240,244,255,0.5);margin-top:4px">Providers</div>
+      </div>
+      <div style="text-align:center;padding:20px;background:rgba(255,255,255,0.03);border-radius:14px">
+        <div style="font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;color:#7c3aed">10K+</div>
+        <div style="font-size:0.82rem;color:rgba(240,244,255,0.5);margin-top:4px">Customers</div>
+      </div>
+      <div style="text-align:center;padding:20px;background:rgba(255,255,255,0.03);border-radius:14px">
+        <div style="font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;color:#06b6d4">4.9★</div>
+        <div style="font-size:0.82rem;color:rgba(240,244,255,0.5);margin-top:4px">Avg Rating</div>
+      </div>
+      <div style="text-align:center;padding:20px;background:rgba(255,255,255,0.03);border-radius:14px">
+        <div style="font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;color:#4f6ef7">9</div>
+        <div style="font-size:0.82rem;color:rgba(240,244,255,0.5);margin-top:4px">Categories</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cta-banner animate-on-scroll">
+    <h2 class="cta-title">Built by Dev Patel</h2>
+    <p class="cta-sub">SerNest is a full-stack Local Service Management System — designed with user experience, trust, and professional quality at its core.</p>
+    <div class="cta-actions">
+      <a href="{% url 'register' %}" class="btn-large btn-hero-primary">Get Started Today</a>
+      <a href="{% url 'contact' %}" class="btn-large btn-hero-secondary">Contact Us</a>
+    </div>
+  </div>
+</section>
+{% endblock %}
