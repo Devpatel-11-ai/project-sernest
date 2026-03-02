@@ -1,16 +1,17 @@
-{% load static %}
-{% url 'core:home' %}
 <!DOCTYPE html>
 <html lang="en">
-
-<head>{% load static %}
-<link rel="stylesheet" href="{% static 'sernest/css/sernest.css' %}">   
+<head>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'sernest/css/sernest.css' %}">  
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"> 
 </head>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}SerNest — Home Service, Done Right{% endblock %}</title>
   <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
+
+
   {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -95,9 +96,13 @@
   </div>
 </footer>
 
-<script src="{% static 'js/main.js' %}"></script>
+<script src="{% static 'sernest/js/main.js' %}"></script>
+</body>
 {% block extra_js %}{% endblock %}
 <body>
 <div class="orb-bottom-right"></div>
 <div class="orb-center"></div>
 </html>
+</body>
+</html>
+

@@ -46,6 +46,8 @@
     </div>
   </div>
 
+
+
   <!-- Floating card visuals -->
   <div class="hero-visual">
     <div class="hero-float-card">
@@ -72,6 +74,123 @@
   </div>
 </section>
 
+  <!-- =============================== -->
+<!-- SerNest Workflow Section -->
+<!-- =============================== -->
+
+<section class="workflow-section">
+    <div class="container">
+
+        <div class="workflow-header">
+            <h2>How <span>SerNest</span> Works</h2>
+            <p>Simple. Smart. Seamless service booking in 4 easy steps.</p>
+        </div>
+
+        <div class="workflow-grid">
+
+            <div class="workflow-card">
+                <div class="step-number">01</div>
+                <div class="icon">🔍</div>
+                <h3>Search Service</h3>
+                <p>Find trusted local or professional services based on your needs and location.</p>
+            </div>
+
+            <div class="workflow-card">
+                <div class="step-number">02</div>
+                <div class="icon">👨‍🔧</div>
+                <h3>Choose Professional</h3>
+                <p>Compare ratings, experience, pricing, and select the best provider.</p>
+            </div>
+
+            <div class="workflow-card">
+                <div class="step-number">03</div>
+                <div class="icon">⚡</div>
+                <h3>Book Instantly</h3>
+                <p>Confirm your booking in seconds with secure and smooth scheduling.</p>
+            </div>
+
+            <div class="workflow-card">
+                <div class="step-number">04</div>
+                <div class="icon">✅</div>
+                <h3>Get Work Done</h3>
+                <p>Relax while verified professionals complete your task with quality guarantee.</p>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<div class="slider-wrapper">
+
+    <div class="slider-container">
+        <div class="slider-track">
+
+            <!-- Card 1 -->
+            <div class="service-card">
+                <div class="service-icon">⚡</div>
+                <h3>Electrical Repair</h3>
+                <div class="service-meta">
+                    <span>⭐ 4.8 Rating</span>
+                    <span>⏱ 45 mins</span>
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="service-card">
+                <div class="service-icon">🚰</div>
+                <h3>Plumbing</h3>
+                <div class="service-meta">
+                    <span>⭐ 4.7 Rating</span>
+                    <span>⏱ 50 mins</span>
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="service-card">
+                <div class="service-icon">❄️</div>
+                <h3>AC Repair</h3>
+                <div class="service-meta">
+                    <span>⭐ 4.9 Rating</span>
+                    <span>⏱ 60 mins</span>
+                </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="service-card">
+                <div class="service-icon">🧹</div>
+                <h3>Cleaning</h3>
+                <div class="service-meta">
+                    <span>⭐ 4.8 Rating</span>
+                    <span>⏱ 40 mins</span>
+                </div>
+            </div>
+
+            <!-- Card 5 -->
+            <div class="service-card">
+                <div class="service-icon">🪚</div>
+                <h3>Carpentry</h3>
+                <div class="service-meta">
+                    <span>⭐ 4.6 Rating</span>
+                    <span>⏱ 55 mins</span>
+                </div>
+            </div>
+
+            <!-- Card 6 -->
+            <div class="service-card">
+                <div class="service-icon">💄</div>
+                <h3>Beauty Services</h3>
+                <div class="service-meta">
+                    <span>⭐ 4.9 Rating</span>
+                    <span>⏱ 35 mins</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+  </div>
+
+
 <!-- ===== SEARCH ===== -->
 <section class="search-section">
   <div class="search-glass animate-on-scroll">
@@ -79,13 +198,29 @@
     <div class="search-row">
       <div class="search-input-wrap">
         <span class="search-icon">🔍</span>
-        <input type="text" class="search-input" placeholder="e.g. Electrical repair, AC service, Plumbing...">
+   
+        <input 
+           type="text"
+            id="serviceSearch"
+            name="serviceSearch"
+           class="search-input"
+           placeholder="e.g. Electrical repair, AC service, Plumbing..."
+           autocomplete="off"
+        > 
       </div>
       <div class="search-input-wrap" style="max-width:200px">
         <span class="search-icon">📍</span>
-        <input type="text" class="search-input" placeholder="Your city">
+        <input 
+          type="text"
+          id="cityInput"
+         name="city"
+         class="search-input city-input"
+         placeholder="Your city"
+         autocomplete="off"
+        >
       </div>
-      <button class="search-btn">Find Providers</button>
+    <div>
+     <button class="search-btn">Find Providers</button>
     </div>
   </div>
 </section>
@@ -114,37 +249,6 @@
   </div>
 </section>
 
-<!-- ===== HOW IT WORKS ===== -->
-<section class="section" style="background:linear-gradient(180deg, transparent, rgba(79,110,247,0.03), transparent)">
-  <div class="section-header">
-    <span class="section-eyebrow">Simple Process</span>
-    <h2 class="section-title">How SerNest Works</h2>
-    <p class="section-sub">Get professional home services in 3 easy steps</p>
-  </div>
-
-  <div class="steps-grid">
-    <div class="step-card animate-on-scroll">
-      <div class="step-number">01</div>
-      <div class="step-title">Search & Browse</div>
-      <p class="step-desc">Filter providers by location, price, rating, and availability. Compare profiles and reviews.</p>
-    </div>
-    <div class="step-card animate-on-scroll">
-      <div class="step-number">02</div>
-      <div class="step-title">Book Instantly</div>
-      <p class="step-desc">Select your date & time slot. The provider confirms within minutes. Online or cash payment.</p>
-    </div>
-    <div class="step-card animate-on-scroll">
-      <div class="step-number">03</div>
-      <div class="step-title">Service & Review</div>
-      <p class="step-desc">Professional arrives at your door. After completion, rate your experience and pay.</p>
-    </div>
-    <div class="step-card animate-on-scroll">
-      <div class="step-number">04</div>
-      <div class="step-title">100% Satisfaction</div>
-      <p class="step-desc">Issues? Raise a complaint and our admin team resolves disputes — guaranteed resolution.</p>
-    </div>
-  </div>
-</section>
 
 <!-- ===== WHY CHOOSE US ===== -->
 <section class="section">

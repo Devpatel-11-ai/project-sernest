@@ -1,5 +1,5 @@
 // ===== SerNest Main JS =====
-
+console.log("MAIN JS WORKING");
 // Navbar scroll behavior
 const navbar = document.querySelector('.navbar');
 window.addEventListener('scroll', () => {
@@ -28,6 +28,20 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
 
 document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+
+// Fade-in animation on scroll
+const cards = document.querySelectorAll(".workflow-card");
+
+window.addEventListener("scroll", () => {
+    cards.forEach(card => {
+        const cardTop = card.getBoundingClientRect().top;
+        if (cardTop < window.innerHeight - 50) {
+            card.style.opacity = "1";
+            card.style.transform = "translateY(0)";
+        }
+    });
+});
+
 
 // Mobile menu
 const mobileToggle = document.querySelector('.nav-mobile-toggle');
@@ -68,3 +82,30 @@ const statObserver = new IntersectionObserver((entries) => {
 
 const statsSection = document.querySelector('.hero-stats');
 if (statsSection) statObserver.observe(statsSection);
+
+
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const track = document.querySelector(".slider-track");
+    const cards = document.querySelectorAll(".service-card");
+
+    if (!track || cards.length === 0) {
+        return;
+    }
+
+    let index = 0;
+
+    function moveSlider() {
+        index++;
+
+        if (index >= cards.length) {
+            index = 0;
+        }
+
+        const slideWidth = track.clientWidth;
+        track.style.transform = `translateX(-${index * slideWidth}px)`;
+    }
+
+    setInterval(moveSlider, 3000);
+});

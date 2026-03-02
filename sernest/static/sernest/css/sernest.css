@@ -413,9 +413,9 @@ body::after {
 
 .hero-title .gradient-text {
   background: linear-gradient(135deg, #4f6ef7, #a855f7, #06b6d4);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .hero-subtitle {
@@ -491,9 +491,9 @@ body::after {
 
 .hero-stat-num span {
   background: var(--gradient-cta);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .hero-stat-label {
@@ -511,6 +511,103 @@ body::after {
   transform: translateY(-50%);
   z-index: 2;
   animation: fadeSlideUp 1.2s ease 0.5s both;
+}
+
+/* ============================= */
+/* Centered Workflow Section */
+/* ============================= */
+/* Apply Poppins ONLY to workflow section */
+
+.workflow-section {
+    font-family: 'Poppins', sans-serif;
+}
+
+.workflow-section {
+    padding: 120px 0;
+    text-align: center;
+}
+
+.workflow-header h2 {
+    font-size: 42px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 15px;
+}
+
+.workflow-header h2 span {
+    background: linear-gradient(90deg, #6366f1, #a855f7);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.workflow-header p {
+    color: #a1a1aa;
+    font-size: 16px;
+    margin-bottom: 60px;
+}
+
+.workflow-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+}
+
+.workflow-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    padding: 50px 25px;
+    border-radius: 18px;
+    transition: 0.4s ease;
+    position: relative;
+}
+
+.workflow-card:hover {
+    transform: translateY(-10px);
+    border-color: rgba(168, 85, 247, 0.5);
+    box-shadow: 0 15px 40px rgba(168, 85, 247, 0.2);
+}
+
+.step-number {
+    font-size: 60px;
+    font-weight: 800;
+    opacity: 0.08;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    color: #ffffff;
+}
+
+.workflow-card .icon {
+    font-size: 36px;
+    margin-bottom: 20px;
+}
+
+.workflow-card h3 {
+    font-size: 20px;
+    margin-bottom: 15px;
+    color: #ffffff;
+}
+
+.workflow-card p {
+    font-size: 14px;
+    color: #cbd5e1;
+    line-height: 1.6;
+}
+
+/* Responsive */
+
+@media (max-width: 1024px) {
+    .workflow-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .workflow-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* ===== SEARCH BAR ===== */
@@ -752,6 +849,7 @@ body::after {
   line-height: 1;
   margin-bottom: 16px;
   background: linear-gradient(135deg, rgba(79,110,247,0.3), rgba(124,58,237,0.15));
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -964,4 +1062,118 @@ footer {
   .footer-grid { grid-template-columns: 1fr; }
   .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
   .categories-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ============================= */
+/* Popular Services Section */
+/* ============================= */
+
+.popular-section {
+    padding: 120px 0;
+    text-align: center;
+}
+
+.popular-header h2 {
+    font-size: 40px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 15px;
+}
+
+.popular-header h2 span {
+    background: linear-gradient(90deg, #6366f1, #a855f7);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.popular-header p {
+    color: #a1a1aa;
+    margin-bottom: 60px;
+}
+
+.popular-grid {
+    display: flex;
+    gap: 30px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+}
+
+
+
+.service-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    padding: 40px 25px;
+    border-radius: 20px;
+    transition: all 0.4s ease;
+    cursor: pointer;
+    min-width: 300px;
+}
+
+.service-card:hover {
+    transform: translateY(-10px);
+    border-color: rgba(168, 85, 247, 0.6);
+    box-shadow: 0 20px 40px rgba(168, 85, 247, 0.2);
+}
+
+.service-icon {
+    font-size: 36px;
+    margin-bottom: 20px;
+}
+
+.service-card h3 {
+    font-size: 20px;
+    margin-bottom: 20px;
+    color: #ffffff;
+}
+
+.service-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #cbd5e1;
+}
+
+/* Responsive */
+
+@media (max-width: 1024px) {
+    .popular-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .popular-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+
+/* Fix hover border glow without cutting */
+.slider-wrapper {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+.slider-container {
+    width: 600px;
+    margin: 0 auto;
+    position: center;
+    margin-bottom: 120px;
+}
+
+.slider-track {
+    display: flex;
+    transition: transform 0.6s ease-in-out;
+}
+
+.service-card {
+    flex: 0 0 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 40px;
 }
