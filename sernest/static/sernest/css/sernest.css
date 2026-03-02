@@ -754,7 +754,6 @@ body::after {
   background: linear-gradient(135deg, rgba(79,110,247,0.3), rgba(124,58,237,0.15));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .step-title {
