@@ -17,15 +17,49 @@
   </div>
 </section>
 
-<section class="section" style="padding-top:20px">
-  <div class="categories-grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr))">
-    {% for cat in categories %}
-    <a href="#" class="category-card animate-on-scroll" id="{{ cat.name|lower }}">
-      <div class="cat-icon-wrap">{{ cat.icon }}</div>
-      <div class="cat-name">{{ cat.name }}</div>
-      <div class="cat-desc">{{ cat.desc }}</div>
-      <span class="cat-count">{{ cat.count }}+ Providers</span>
-      <div style="margin-top:14px;font-size:0.82rem;color:rgba(240,244,255,0.35);display:flex;align-items:center;gap:5px">View providers →</div>
+<section class="section" style="padding-top:40px">
+  <!-- HOME SERVICES -->
+   <h2 class="section-title">🏠 Home & Local Services</h2>
+   <div class="categories-grid">
+    {% for category in home_services %}
+    <a href="{% url 'core:category_providers' category.id %}" class="category-card">
+      <div class="cat-icon">{{ category.icon }}</div>
+      <h3 class="cat-title">{{ category.name }}</h3>
+      <p class="cat-desc">Browse verified professionals</p>
+      <span class="cat-count">
+        {{ category.serviceprovider_set.count }} Providers
+      </span>
+      <div class="view-btn">View Providers →</div>
+    </a>
+    {% endfor %}
+  </div>
+  <!-- PROFESSIONAL SERVICES -->
+   <h2 class="section-title">💻 Professional & Freelance Services</h2>
+   <div class="categories-grid">
+    {% for category in professional_services %}
+    <a href="{% url 'core:category_providers' category.id %}" class="category-card">
+      <div class="cat-icon">{{ category.icon }}</div>
+      <h3 class="cat-title">{{ category.name }}</h3>
+      <p class="cat-desc">Browse verified professionals</p>
+      <span class="cat-count">
+        {{ category.serviceprovider_set.count }} Providers
+      </span>
+      <div class="view-btn">View Providers →</div>
+    </a>
+    {% endfor %}
+  </div>
+  <!-- SKILLED WORKERS -->
+   <h2 class="section-title">👷 Local Skilled Workers</h2>
+   <div class="categories-grid">
+    {% for category in skilled_services %}
+    <a href="{% url 'core:category_providers' category.id %}" class="category-card">
+      <div class="cat-icon">{{ category.icon }}</div>
+      <h3 class="cat-title">{{ category.name }}</h3>
+      <p class="cat-desc">Browse verified professionals</p>
+      <span class="cat-count">
+        {{ category.serviceprovider_set.count }} Providers
+      </span>
+      <div class="view-btn">View Providers →</div>
     </a>
     {% endfor %}
   </div>
@@ -41,3 +75,15 @@
   </div>
 </section>
 {% endblock %}
+
+<div class="category-grid">
+  {% for category in categories %}
+  <a href="{% url 'category_providers' category.id %}" class="category-card">
+    <div class="icon">
+      {{ category.icon }}
+    </div>
+    <h3>{{ category.name }}</h3>
+    <p class="view-providers">View Providers</p>
+  </a>
+  {% endfor %}
+</div>

@@ -57,4 +57,54 @@ class User(AbstractBaseUser):
     def __str__(self):
         return self.email
 
-   
+class Category(models.Model):
+
+    SERVICE_GROUPS = [
+        ('home', 'Home & Local Services'),
+        ('professional', 'Professional & Freelance Services'),
+        ('skilled', 'Local Skilled Workers'),
+    ]
+
+    name = models.CharField(max_length=100)
+    icon = models.CharField(max_length=10)
+    group = models.CharField(max_length=100, choices=SERVICE_GROUPS)
+
+    def __str__(self):
+        return self.name
+
+class ServiceProvider(models.Model):
+
+    WORK_TYPE = [
+        ('local', 'Local Service Worker'),
+        ('freelancer', 'Freelancer'),
+        ('company', 'Company'),
+    ]
+
+    MODE = [
+        ('remote', 'Remote'),
+        ('onsite', 'On-site'),
+        ('both', 'Both'),
+    ]
+
+    name = models.CharField(max_length=100)
+    phone = models.CharField(max_length=15)
+    email = models.EmailField()
+
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+
+    city = models.CharField(max_length=100)
+
+    experience = models.IntegerField()
+
+    rating = models.FloatField(default=4.5)
+
+    work_type = models.CharField(max_length=20, choices=WORK_TYPE)
+
+    mode = models.CharField(max_length=20, choices=MODE)
+
+    available = models.BooleanField(default=True)
+
+    profile_image = models.ImageField(upload_to="providers/")
+
+    def __str__(self):
+        return self.name

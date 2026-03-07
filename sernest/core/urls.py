@@ -8,4 +8,7 @@ urlpatterns = [
   path('signup/', views.UserSignupView, name='signup'),
   path('login/', views.UserLoginView, name='login'),
   path('', views.home, name='home'),
+  path('categories/', views.categories, name="categories"),
+  path('category/<int:id>/', views.category_providers, name='category_providers'),
+  path('provider_register/', views.provider_register, name='provider_register'),
 ]

@@ -1,0 +1,39 @@
+
+{% load static %}
+
+
+<div class="provider-grid">
+
+{% for p in providers %}
+
+<div class="provider-card">
+
+{% if p.profile_image %}
+<img src="{{ p.profile_image.url }}" class="provider-img">
+{% else %}
+<img src="{% static 'sernest/default-user.png' %}" class="provider-img">
+{% endif %}
+
+<h3>{{ p.name }}</h3>
+
+<p>{{ p.category.name }}</p>
+
+<p>⭐ {{ p.rating }}</p>
+
+<p>📍 {{ p.city }}</p>
+
+<p>
+{% if p.available %}
+🟢 Available
+{% else %}
+🔴 Busy
+{% endif %}
+</p>
+
+<button class="hire-btn">Hire Now</button>
+
+</div>
+
+{% endfor %}
+
+</div>
