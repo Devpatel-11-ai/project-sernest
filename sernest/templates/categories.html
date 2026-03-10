@@ -8,14 +8,30 @@
   <div class="hero-content" style="text-align:center;max-width:100%;width:100%">
     <div class="hero-badge"><span class="hero-badge-dot"></span>51 Service Categories</div>
     <h1 class="hero-title" style="font-size:clamp(2.2rem,5vw,4rem)">All <span class="gradient-text">Services</span></h1>
-    <p class="hero-subtitle" style="margin:0 auto 32px">Browse and book from our complete range of verified home services</p>
+    <p class="hero-subtitle" style="margin:0 auto 32px">Browse and book from our complete range of verified home services
+<div class="service-search-box">
+  <input
+  type="text"
+  id="category-search"
+  class="service-search-input"
+  placeholder="🔎 e.g. Electrician, AC repair, Plumber"
+  />
 
-    <div style="max-width:480px;margin:0 auto;position:relative">
-      <span style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:rgba(240,244,255,0.4)">🔍</span>
-      <input type="text" class="search-input" placeholder="Search services..." style="width:100%;padding-left:44px;font-size:1rem;padding-top:14px;padding-bottom:14px;border-radius:50px">
-    </div>
-  </div>
+  <div id="search-results" class="search-results"></div>
+  <input
+  type="text"
+  id="location-search"
+  class="service-location-input"
+  placeholder="📍 Your city"
+  />
+  <button id="search-btn" class="service-search-btn">
+    Search
+  </button>
+</div>
+</p>
+</div>
 </section>
+
 
 <section class="section" style="padding-top:40px">
   <!-- HOME SERVICES -->
@@ -76,14 +92,4 @@
 </section>
 {% endblock %}
 
-<div class="category-grid">
-  {% for category in categories %}
-  <a href="{% url 'category_providers' category.id %}" class="category-card">
-    <div class="icon">
-      {{ category.icon }}
-    </div>
-    <h3>{{ category.name }}</h3>
-    <p class="view-providers">View Providers</p>
-  </a>
-  {% endfor %}
-</div>
+

@@ -2,6 +2,7 @@ from django.shortcuts import render,redirect,HttpResponse
 from .forms import UserSignupForm,UserLoginForm
 from django.contrib.auth import authenticate,login
 from .models import Category, ServiceProvider
+from django.http import JsonResponse
 
 # Create your views here.
 def UserSignupView(request):
@@ -94,3 +95,19 @@ def category_providers(request, id):
         "category": category,
         "providers": providers
     })
+
+def search_categories(request):
+    query = request.GET.get('', '')
+
+    results = []
+
+    if query:
+        categories = Category.objects.filter(name__icontains=query)[:8]
+
+        for cat in categories:
+            results.append({
+                "id": cat.id,
+                "name": cat.name
+            })
+
+    return JsonResponse(results, safe=False)
