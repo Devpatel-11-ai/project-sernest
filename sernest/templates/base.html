@@ -50,6 +50,15 @@
 
   <button class="nav-mobile-toggle" aria-label="Menu">☰</button>
 </nav>
+{% if messages %}
+  {% for msg in messages %}
+    {% if 'error' in msg.tags %}
+      <div class="site-toast site-toast-error">{{ msg }}</div>
+    {% else %}
+      <div class="site-toast site-toast-success">{{ msg }}</div>
+    {% endif %}
+  {% endfor %}
+{% endif %}
 
 <!-- ===== MAIN CONTENT ===== -->
 {% block content %}{% endblock %}

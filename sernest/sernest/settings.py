@@ -138,3 +138,7 @@ EMAIL_USE_TLS = True
 
 EMAIL_HOST_USER = 'supportsernest@gmail.com'
 EMAIL_HOST_PASSWORD = 'zoxn autq jcrz lliv'
+
+import os
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
