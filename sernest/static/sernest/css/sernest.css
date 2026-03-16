@@ -1452,3 +1452,20 @@ overflow: visible;
 max-height:320px;
 overflow-y:auto;
 }
+
+.message-box{
+    margin-top:15px;
+    padding:12px;
+    border-radius:10px;
+    font-size:14px;
+}
+
+.message-success{
+    background:#0f5132;
+    color:#7cf29a;
+}
+
+.message-error{
+    background:#5a1c1c;
+    color:#ff9c9c;
+}

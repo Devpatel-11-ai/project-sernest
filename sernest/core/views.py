@@ -3,6 +3,11 @@ from .forms import UserSignupForm,UserLoginForm
 from django.contrib.auth import authenticate,login
 from .models import Category, ServiceProvider
 from django.http import JsonResponse
+from django.shortcuts import render
+from django.contrib import messages
+from .google_sheet import save_contact
+from django.core.mail import send_mail
+from django.conf import settings
 
 # Create your views here.
 def UserSignupView(request):
@@ -86,14 +91,14 @@ def categories(request):
     })
     
 def category_providers(request, id):
-
     category = Category.objects.get(id=id)
-
     providers = ServiceProvider.objects.filter(category=category)
+    all_categories = Category.objects.all()          # ← ADD THIS LINE
 
     return render(request, "category_providers.html", {
         "category": category,
-        "providers": providers
+        "providers": providers,
+        "all_categories": all_categories,            # ← ADD THIS TOO
     })
 
 def search_categories(request):
@@ -111,3 +116,44 @@ def search_categories(request):
             })
 
     return JsonResponse(results, safe=False)
+
+def contact(request):
+
+    if request.method == "POST":
+
+        name = request.POST.get("name")
+        email = request.POST.get("email")
+        subject = request.POST.get("subject")
+        message = request.POST.get("message")
+
+        try:
+            save_contact(name, email, subject, message)
+
+            # Send confirmation email
+            send_mail(
+                subject="Thanks for contacting SerNest",
+                message=f"""
+Hi {name},
+
+Thank you for contacting SerNest.
+
+We received your message:
+"{message}"
+
+Our team will respond shortly.
+
+Best regards,
+SerNest Team
+""",
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[email],
+                fail_silently=False,
+            )
+
+            messages.success(request,"✅ Your message was sent successfully!")
+
+        except Exception as e:
+            print(e)
+            messages.error(request,"❌ Message failed to send")
+
+    return render(request,"contact.html")

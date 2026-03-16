@@ -17,6 +17,7 @@ function filterEmployees() {
 const input = document.getElementById("category-search");
 const results = document.getElementById("search-results");
 
+if(input && results){   
 let selectedIndex = -1;
 
 const categories = [];
@@ -105,12 +106,14 @@ function updateSelection(items){
         items[selectedIndex].classList.add("active");
     }
 }
+}
 
 document.addEventListener("DOMContentLoaded", function(){
     const searchBtn = document.getElementById("search-btn");
     searchBtn.addEventListener("click", function(){
 
         const service = document.getElementById("category-search").value.trim();
+        if(searchBtn){
         const city = document.getElementById("location-search").value.trim();
 
         if(service === ""){
@@ -123,6 +126,42 @@ document.addEventListener("DOMContentLoaded", function(){
             url += "&city=" + encodeURIComponent(city);
         }
         window.location.href = url;
+    }
     });
 });
 });
+
+
+// const contactForm = document.getElementById("contactForm")
+// if(contactForm)
+// contactForm.addEventListener("submit", async function(e){
+//     e.preventDefault();
+//     const data = {
+//         name: document.getElementById("name").value,
+//         email: document.getElementById("email").value,
+//         subject: document.getElementById("subject").value,
+//         message: document.getElementById("message").value
+//     };
+//     const url = "https://script.google.com/macros/s/AKfycbz6G0avFeDsHV7LHuJVqIuY1wa49UasIJP-nE-StxCKi99qctMQoMS2_mfk7Fu1cOUX/exec";
+
+//     try{
+
+//        await fetch(url,{
+//         method:"POST",
+//         mode:"no-cors",
+//         headers:{
+//             "Content-Type":"application/x-www-form-urlencoded"
+//     },
+//     body:new URLSearchParams(data)
+// });
+
+//     document.getElementById("form-status").innerHTML =
+//     "✅ Thank you! Your message has been sent.";
+
+//     this.reset();
+
+// } catch(error){
+//     console.error(error);
+// }
+
+// });

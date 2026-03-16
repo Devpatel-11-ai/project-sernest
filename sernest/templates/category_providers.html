@@ -1,39 +1,726 @@
-
+{% extends 'base.html' %}
 {% load static %}
+{% block title %}{{ category.name }} Providers — SerNest{% endblock %}
 
+{% block extra_css %}
+<style>
+  .cp-wrapper {
+    display: flex;
+    min-height: calc(100vh - 80px);
+    padding-top: 80px;
+  }
 
-<div class="provider-grid">
+  /* ── SIDEBAR ── */
+  .cp-sidebar {
+    width: 90px;
+    position: fixed;
+    top: 80px; left: 0; bottom: 0;
+    background: rgba(10, 11, 20, 0.72);
+    backdrop-filter: blur(22px) saturate(1.5);
+    -webkit-backdrop-filter: blur(22px) saturate(1.5);
+    border-right: 1px solid rgba(255,255,255,0.07);
+    display: flex; flex-direction: column; align-items: center;
+    padding: 20px 0 30px; gap: 4px;
+    overflow-y: auto; z-index: 40;
+    scrollbar-width: none;
+  }
+  .cp-sidebar::-webkit-scrollbar { display: none; }
+  .sb-section-lbl {
+    font-size: 0.55rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: rgba(255,255,255,0.22); margin: 8px 0 4px; text-align: center;
+    width: 100%; padding: 0 6px; font-family: 'Poppins', sans-serif;
+  }
+  .sb-divider { width: 38px; height: 1px; background: rgba(255,255,255,0.07); margin: 5px 0; }
+  .sb-cat {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 9px 6px; border-radius: 12px; cursor: pointer;
+    width: 74px; transition: all 0.2s ease;
+    border: 1px solid transparent;
+    text-decoration: none; color: rgba(255,255,255,0.38);
+    position: relative;
+  }
+  .sb-cat:hover {
+    background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.82); text-decoration: none;
+  }
+  .sb-cat.active {
+    background: rgba(124,110,245,0.15); border-color: rgba(124,110,245,0.4);
+    color: #a78bfa; box-shadow: 0 0 18px rgba(124,110,245,0.15);
+  }
+  .sb-cat.active::before {
+    content: ''; position: absolute; left: -1px; top: 20%; bottom: 20%;
+    width: 3px; background: #7c6ef5; border-radius: 0 3px 3px 0;
+  }
+  .sb-icon { font-size: 1.35rem; line-height: 1; }
+  .sb-label {
+    font-size: 0.55rem; text-align: center; line-height: 1.2; font-weight: 500;
+    font-family: 'Poppins', sans-serif; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; max-width: 68px;
+  }
 
-{% for p in providers %}
+  /* ── MAIN ── */
+  .cp-main {
+    margin-left: 90px; flex: 1;
+    padding: 36px 36px 60px;
+    background: #0a0b0f; min-height: calc(100vh - 80px);
+  }
+  .cp-breadcrumb {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.78rem; color: rgba(255,255,255,0.32);
+    margin-bottom: 14px; font-family: 'Poppins', sans-serif;
+  }
+  .cp-breadcrumb a { color: rgba(255,255,255,0.32); text-decoration: none; transition: color .2s; }
+  .cp-breadcrumb a:hover { color: #a78bfa; }
+  .cp-breadcrumb .sep { color: rgba(255,255,255,0.15); }
+  .cp-title {
+    font-family: 'Poppins', sans-serif; font-size: 1.85rem; font-weight: 800;
+    color: #f0f0f5; display: flex; align-items: center; gap: 10px; margin-bottom: 5px;
+  }
+  .cp-meta { color: rgba(255,255,255,0.38); font-size: 0.83rem; font-family: 'Poppins', sans-serif; margin-bottom: 26px; }
+  .cp-meta span { color: #a78bfa; font-weight: 600; }
 
-<div class="provider-card">
+  /* filter bar */
+  .cp-filterbar { display: flex; align-items: center; gap: 8px; margin-bottom: 26px; flex-wrap: wrap; }
+  .fchip {
+    padding: 7px 16px; border-radius: 50px;
+    border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04);
+    color: rgba(255,255,255,0.42); font-size: 0.79rem; cursor: pointer;
+    transition: all .2s; font-family: 'Poppins', sans-serif; font-weight: 500;
+  }
+  .fchip:hover { border-color: rgba(167,139,250,0.5); color: rgba(255,255,255,0.85); background: rgba(124,110,245,0.08); }
+  .fchip.active { background: rgba(124,110,245,0.2); border-color: #7c6ef5; color: #a78bfa; font-weight: 600; }
+  .sort-select {
+    margin-left: auto; background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.68);
+    padding: 7px 14px; border-radius: 50px; font-size: 0.79rem; cursor: pointer;
+    font-family: 'Poppins', sans-serif; outline: none; transition: border-color .2s;
+  }
+  .sort-select:focus { border-color: #7c6ef5; }
 
-{% if p.profile_image %}
-<img src="{{ p.profile_image.url }}" class="provider-img">
-{% else %}
-<img src="{% static 'sernest/default-user.png' %}" class="provider-img">
-{% endif %}
+  .no-results { text-align: center; padding: 80px 20px; color: rgba(255,255,255,0.28); font-family: 'Poppins', sans-serif; display: none; }
+  .no-results .nri { font-size: 3rem; margin-bottom: 12px; }
 
-<h3>{{ p.name }}</h3>
+  /* ── GRID ── */
+  .providers-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
 
-<p>{{ p.category.name }}</p>
+  .pcard {
+    background: #111318; border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px; overflow: hidden; cursor: pointer;
+    transition: all .3s ease; position: relative;
+  }
+  .pcard:hover {
+    border-color: rgba(255,255,255,0.16); transform: translateY(-5px);
+    box-shadow: 0 22px 42px rgba(0,0,0,0.5), 0 0 0 1px rgba(124,110,245,0.12);
+  }
+  .pcard-photo {
+    position: relative; height: 185px;
+    background: linear-gradient(135deg,#1a1b27,#14151e); overflow: hidden;
+  }
+  .pcard-photo img { width:100%; height:100%; object-fit:cover; display:block; }
+  .pcard-photo-default {
+    width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+    background: linear-gradient(135deg,#1c1d2e,#13141d);
+  }
+  .pcard-photo-default svg { width:68px; height:68px; opacity:.22; color:#fff; }
+  .avail-tag {
+    position:absolute; top:11px; right:11px; padding:4px 10px; border-radius:50px;
+    font-size:.7rem; font-weight:600; font-family:'Poppins',sans-serif;
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+  }
+  .avail-tag.yes { background:rgba(34,197,94,.18); color:#4ade80; border:1px solid rgba(34,197,94,.3); }
+  .avail-tag.no  { background:rgba(239,68,68,.18);  color:#f87171; border:1px solid rgba(239,68,68,.28); }
+  .mode-tag {
+    position:absolute; top:11px; left:11px; padding:3px 9px; border-radius:50px;
+    font-size:.64rem; font-weight:600; font-family:'Poppins',sans-serif;
+    background:rgba(0,0,0,.55); color:rgba(255,255,255,.68);
+    border:1px solid rgba(255,255,255,.12); backdrop-filter:blur(6px);
+  }
+  .pcard-body { padding:15px 16px 18px; text-align:center; }
+  .pcard-name { font-family:'Poppins',sans-serif; font-size:1rem; font-weight:700; color:#f0f0f5; margin-bottom:3px; }
+  .pcard-svc  { color:#a78bfa; font-size:.78rem; font-weight:500; font-family:'Poppins',sans-serif; margin-bottom:10px; }
+  .pcard-rating { display:flex; align-items:center; justify-content:center; gap:5px; font-size:.82rem; margin-bottom:8px; font-family:'Poppins',sans-serif; }
+  .stars { color:#f59e0b; }
+  .rnum  { color:#f0f0f5; font-weight:600; }
+  .rexp  { color:rgba(255,255,255,.32); font-size:.74rem; }
+  .pcard-city { font-size:.75rem; color:rgba(255,255,255,.32); margin-bottom:14px; font-family:'Poppins',sans-serif; }
+  .hire-btn {
+    width:100%; padding:10px; border-radius:10px; background:#7c6ef5;
+    border:none; color:#fff; font-size:.84rem; font-weight:600; cursor:pointer;
+    transition:all .2s; font-family:'Poppins',sans-serif;
+  }
+  .hire-btn:hover { background:#a78bfa; box-shadow:0 0 22px rgba(124,110,245,.4); }
 
-<p>⭐ {{ p.rating }}</p>
+  /* ── MODAL ── */
+  .bk-overlay {
+    display:none; position:fixed; inset:0; z-index:9999;
+    background:rgba(0,0,0,.75); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+    align-items:center; justify-content:center; padding:20px;
+  }
+  .bk-overlay.open { display:flex; }
+  .bk-modal {
+    background:#111318; border:1px solid rgba(255,255,255,.09); border-radius:20px;
+    width:100%; max-width:510px; max-height:92vh; overflow-y:auto;
+    animation:bkSlide .3s ease; scrollbar-width:thin; scrollbar-color:rgba(255,255,255,.08) transparent;
+  }
+  @keyframes bkSlide { from{transform:translateY(28px);opacity:0} to{transform:translateY(0);opacity:1} }
+  .bk-head {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px 26px 18px; border-bottom:1px solid rgba(255,255,255,.07);
+    position:sticky; top:0; background:#111318; z-index:2; border-radius:20px 20px 0 0;
+  }
+  .bk-title { font-family:'Poppins',sans-serif; font-size:1.12rem; font-weight:700; color:#f0f0f5; }
+  .bk-close {
+    width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.09); color:rgba(255,255,255,.48); font-size:.95rem;
+    cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .2s;
+  }
+  .bk-close:hover { border-color:rgba(255,255,255,.2); color:#f0f0f5; }
+  .bk-body { padding:22px 26px 0; }
 
-<p>📍 {{ p.city }}</p>
+  .bk-steps { display:flex; align-items:center; margin-bottom:6px; }
+  .bk-sdot {
+    width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:.72rem; font-weight:700; border:2px solid rgba(255,255,255,.12);
+    color:rgba(255,255,255,.28); background:#16181f; flex-shrink:0; transition:all .3s;
+    font-family:'Poppins',sans-serif;
+  }
+  .bk-sdot.done    { background:#7c6ef5; border-color:#7c6ef5; color:#fff; }
+  .bk-sdot.current { border-color:#a78bfa; color:#a78bfa; background:rgba(124,110,245,.12); }
+  .bk-sline { flex:1; height:1px; background:rgba(255,255,255,.08); transition:background .3s; }
+  .bk-sline.done { background:#7c6ef5; }
+  .bk-slabels { display:flex; justify-content:space-between; margin-bottom:20px; }
+  .bk-slbl { font-size:.67rem; color:rgba(255,255,255,.28); text-align:center; flex:1; font-family:'Poppins',sans-serif; font-weight:500; }
+  .bk-slbl.current { color:#a78bfa; font-weight:600; }
 
-<p>
-{% if p.available %}
-🟢 Available
-{% else %}
-🔴 Busy
-{% endif %}
-</p>
+  .prov-mini {
+    display:flex; align-items:center; gap:14px;
+    background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07);
+    border-radius:12px; padding:12px 14px; margin-bottom:20px;
+  }
+  .prov-mini-img {
+    width:50px; height:50px; border-radius:50%; overflow:hidden;
+    background:#1c1d2e; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .prov-mini-img img { width:100%; height:100%; object-fit:cover; }
+  .prov-mini-name { font-weight:700; font-size:.9rem; color:#f0f0f5; font-family:'Poppins',sans-serif; }
+  .prov-mini-svc  { color:#a78bfa; font-size:.76rem; margin-top:2px; font-family:'Poppins',sans-serif; }
+  .prov-mini-city { font-size:.73rem; color:rgba(255,255,255,.32); margin-top:2px; font-family:'Poppins',sans-serif; }
 
-<button class="hire-btn">Hire Now</button>
+  .f-group { margin-bottom:15px; }
+  .f-label { display:block; font-size:.77rem; font-weight:600; color:rgba(255,255,255,.42); margin-bottom:7px; font-family:'Poppins',sans-serif; letter-spacing:.03em; }
+  .f-input,.f-select,.f-textarea {
+    width:100%; background:#16181f; border:1px solid rgba(255,255,255,.09);
+    color:#f0f0f5; padding:11px 13px; border-radius:10px; font-size:.87rem;
+    font-family:'Poppins',sans-serif; outline:none; transition:border-color .2s;
+  }
+  .f-input:focus,.f-select:focus,.f-textarea:focus { border-color:#7c6ef5; }
+  .f-input::placeholder { color:rgba(255,255,255,.18); }
+  .f-textarea { resize:vertical; min-height:72px; }
+  .f-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .f-row3 { display:grid; grid-template-columns:2fr 1fr 1fr; gap:9px; }
 
+  .slots-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:7px; }
+  .tslot {
+    padding:8px 4px; border-radius:8px; text-align:center;
+    border:1px solid rgba(255,255,255,.09); background:rgba(255,255,255,.03);
+    font-size:.74rem; cursor:pointer; transition:all .2s;
+    color:rgba(255,255,255,.42); font-family:'Poppins',sans-serif; font-weight:500;
+  }
+  .tslot:hover:not(.disabled) { border-color:#a78bfa; color:#f0f0f5; background:rgba(124,110,245,.08); }
+  .tslot.selected { background:rgba(124,110,245,.22); border-color:#7c6ef5; color:#a78bfa; font-weight:600; }
+  .tslot.disabled { opacity:.28; cursor:not-allowed; }
+
+  .price-box {
+    background:#16181f; border:1px solid rgba(255,255,255,.08);
+    border-radius:12px; padding:15px; margin-bottom:17px;
+  }
+  .price-row { display:flex; justify-content:space-between; font-size:.84rem; margin-bottom:8px; font-family:'Poppins',sans-serif; }
+  .price-row:last-child { margin-bottom:0; padding-top:8px; border-top:1px solid rgba(255,255,255,.07); font-weight:700; font-size:.9rem; }
+  .price-lbl { color:rgba(255,255,255,.38); }
+  .price-val { color:#f0f0f5; }
+  .price-total { color:#a78bfa; }
+
+  .pay-methods { display:flex; gap:8px; margin-bottom:17px; }
+  .pay-opt {
+    flex:1; padding:11px 5px; border-radius:10px;
+    border:1px solid rgba(255,255,255,.09); background:rgba(255,255,255,.03);
+    text-align:center; cursor:pointer; transition:all .2s;
+  }
+  .pay-opt:hover { border-color:rgba(255,255,255,.18); }
+  .pay-opt.selected { border-color:#7c6ef5; background:rgba(124,110,245,.12); }
+  .pay-opt-icon { font-size:1.25rem; margin-bottom:3px; }
+  .pay-opt-name { font-size:.67rem; color:rgba(255,255,255,.38); font-family:'Poppins',sans-serif; }
+  .pay-opt.selected .pay-opt-name { color:#a78bfa; }
+
+  .bk-panel { display:none; }
+  .bk-panel.active { display:block; }
+
+  .upi-chips { display:flex; gap:7px; flex-wrap:wrap; margin-top:5px; margin-bottom:13px; }
+  .upi-chip {
+    background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09);
+    color:rgba(255,255,255,.42); border-radius:20px; padding:3px 10px;
+    font-size:.72rem; cursor:pointer; font-family:'Poppins',sans-serif; transition:all .2s;
+  }
+  .upi-chip:hover { border-color:#a78bfa; color:#a78bfa; }
+  .cash-notice {
+    background:rgba(34,197,94,.07); border:1px solid rgba(34,197,94,.2);
+    border-radius:10px; padding:13px 15px; font-size:.83rem; color:#4ade80;
+    line-height:1.6; font-family:'Poppins',sans-serif;
+  }
+
+  .success-wrap { text-align:center; padding:32px 10px; }
+  .success-emoji { font-size:3.5rem; margin-bottom:14px; animation:popIn .4s cubic-bezier(.175,.885,.32,1.275); }
+  @keyframes popIn { from{transform:scale(0)} to{transform:scale(1)} }
+  .success-title { font-family:'Poppins',sans-serif; font-size:1.35rem; font-weight:800; color:#f0f0f5; margin-bottom:8px; }
+  .success-sub { color:rgba(255,255,255,.38); font-size:.86rem; line-height:1.6; font-family:'Poppins',sans-serif; }
+  .bk-ref-box { margin:18px 0; padding:13px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07); border-radius:10px; }
+  .bk-ref-label { font-size:.71rem; color:rgba(255,255,255,.32); margin-bottom:5px; font-family:'Poppins',sans-serif; }
+  .bk-ref-num { font-family:'Poppins',sans-serif; font-size:1.2rem; font-weight:800; color:#a78bfa; letter-spacing:.06em; }
+  .bk-cfm-tbl { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); border-radius:10px; padding:12px 14px; text-align:left; }
+  .bk-cfm-row { display:flex; justify-content:space-between; margin-bottom:7px; font-size:.82rem; font-family:'Poppins',sans-serif; }
+  .bk-cfm-row:last-child { margin-bottom:0; }
+  .cfm-k { color:rgba(255,255,255,.32); }
+  .cfm-v { color:#f0f0f5; font-weight:600; }
+
+  .bk-footer {
+    padding:17px 26px 22px; display:flex; gap:10px;
+    position:sticky; bottom:0; background:#111318;
+    border-top:1px solid rgba(255,255,255,.06); border-radius:0 0 20px 20px;
+  }
+  .bk-btn-back {
+    padding:11px 18px; border-radius:10px; background:none;
+    border:1px solid rgba(255,255,255,.1); color:rgba(255,255,255,.42);
+    font-size:.87rem; cursor:pointer; font-family:'Poppins',sans-serif; transition:all .2s;
+  }
+  .bk-btn-back:hover { border-color:rgba(255,255,255,.2); color:#f0f0f5; }
+  .bk-btn-next {
+    flex:1; padding:11px; border-radius:10px; background:#7c6ef5; border:none;
+    color:#fff; font-size:.9rem; font-weight:700; cursor:pointer;
+    font-family:'Poppins',sans-serif; transition:all .2s;
+  }
+  .bk-btn-next:hover { background:#a78bfa; box-shadow:0 0 22px rgba(124,110,245,.4); }
+
+  @media(max-width:1024px) { .providers-grid { grid-template-columns:repeat(2,1fr); } }
+  @media(max-width:680px) {
+    .providers-grid { grid-template-columns:1fr; }
+    .cp-sidebar { width:66px; } .cp-main { margin-left:66px; padding:22px 14px 50px; }
+    .sb-label { display:none; } .sb-cat { width:52px; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cp-wrapper">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="cp-sidebar">
+    {% if all_categories %}
+      {% regroup all_categories by group as grouped_cats %}
+      {% for grp in grouped_cats %}
+        <div class="sb-section-lbl">
+          {% if grp.grouper == "home" %}Home
+          {% elif grp.grouper == "professional" %}Pro
+          {% elif grp.grouper == "skilled" %}Skilled
+          {% else %}{{ grp.grouper }}{% endif %}
+        </div>
+        {% for cat in grp.list %}
+          <a href="{% url 'core:category_providers' cat.id %}"
+             class="sb-cat {% if cat.id == category.id %}active{% endif %}"
+             title="{{ cat.name }}">
+            <span class="sb-icon">{{ cat.icon }}</span>
+            <span class="sb-label">{{ cat.name }}</span>
+          </a>
+        {% endfor %}
+        {% if not forloop.last %}<div class="sb-divider"></div>{% endif %}
+      {% endfor %}
+    {% else %}
+      <a href="{% url 'core:categories' %}" class="sb-cat" title="All">
+        <span class="sb-icon">🏠</span>
+        <span class="sb-label">All</span>
+      </a>
+    {% endif %}
+  </aside>
+
+  <!-- ══ MAIN ══ -->
+  <main class="cp-main">
+
+    <nav class="cp-breadcrumb">
+      <a href="{% url 'core:home' %}">Home</a>
+      <span class="sep">›</span>
+      <a href="{% url 'core:categories' %}">Categories</a>
+      <span class="sep">›</span>
+      <span style="color:rgba(255,255,255,.7)">{{ category.name }}</span>
+    </nav>
+
+    <h1 class="cp-title"><span>{{ category.icon }}</span> {{ category.name }}</h1>
+    <p class="cp-meta"><span id="visCount">{{ providers|length }}</span> verified professional{{ providers|length|pluralize }} available</p>
+
+    <!-- Filters -->
+    <div class="cp-filterbar">
+      <button class="fchip active" data-filter="all">All</button>
+      <button class="fchip" data-filter="available">Available Now</button>
+      <button class="fchip" data-filter="onsite">On-site</button>
+      <button class="fchip" data-filter="remote">Remote</button>
+      <select class="sort-select" id="sortSel">
+        <option value="default">Sort: Default</option>
+        <option value="rating-high">Rating: High → Low</option>
+        <option value="rating-low">Rating: Low → High</option>
+        <option value="exp-high">Experience: Most First</option>
+        <option value="exp-low">Experience: Least First</option>
+        <option value="name-az">Name: A → Z</option>
+      </select>
+    </div>
+
+    <div class="no-results" id="noResults">
+      <div class="nri">🔍</div>
+      <p>No providers match this filter.</p>
+    </div>
+
+    <!-- Grid -->
+    <div class="providers-grid" id="provGrid">
+      {% for p in providers %}
+      <div class="pcard"
+           data-available="{{ p.available|yesno:'true,false' }}"
+           data-mode="{{ p.mode }}"
+           data-rating="{{ p.rating }}"
+           data-experience="{{ p.experience }}"
+           data-name="{{ p.name }}"
+           data-photo="{% if p.profile_image %}{{ p.profile_image.url }}{% endif %}" onclick="openBookingFromCard(this)">
+        <div class="pcard-photo">
+          {% if p.profile_image %}
+            <img src="{{ p.profile_image.url }}" alt="{{ p.name }}"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="pcard-photo-default" style="display:none">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+              </svg>
+            </div>
+          {% else %}
+            <div class="pcard-photo-default">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+              </svg>
+            </div>
+          {% endif %}
+          <span class="avail-tag {% if p.available %}yes{% else %}no{% endif %}">
+            {% if p.available %}● Available{% else %}● Busy{% endif %}
+          </span>
+          <span class="mode-tag">
+            {% if p.mode == 'onsite' %}On-site
+            {% elif p.mode == 'remote' %}Remote
+            {% else %}Flexible{% endif %}
+          </span>
+        </div>
+        <div class="pcard-body">
+          <div class="pcard-name">{{ p.name }}</div>
+          <div class="pcard-svc">{{ category.icon }} {{ category.name }}</div>
+          <div class="pcard-rating">
+            <span class="stars">
+              {% with r=p.rating %}
+                {% if r >= 1 %}★{% else %}☆{% endif %}{% if r >= 2 %}★{% else %}☆{% endif %}{% if r >= 3 %}★{% else %}☆{% endif %}{% if r >= 4 %}★{% else %}☆{% endif %}{% if r >= 5 %}★{% else %}☆{% endif %}
+              {% endwith %}
+            </span>
+            <span class="rnum">{{ p.rating }}</span>
+            <span class="rexp">· {{ p.experience }} yr{{ p.experience|pluralize }} exp</span>
+          </div>
+          <div class="pcard-city">📍 {{ p.city }}</div>
+          <button class="hire-btn">Hire Now</button>
+        </div>
+      </div>
+      {% empty %}
+      <div style="grid-column:1/-1;text-align:center;padding:80px 20px;color:rgba(255,255,255,.28);font-family:'Poppins',sans-serif;">
+        <div style="font-size:3rem;margin-bottom:12px">🔍</div>
+        <p>No providers registered for {{ category.name }} yet.</p>
+        <a href="{% url 'core:provider_register' %}"
+           style="display:inline-block;margin-top:16px;padding:10px 24px;background:#7c6ef5;color:#fff;border-radius:50px;text-decoration:none;font-size:.84rem;font-weight:600">
+          Become a Provider
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+
+  </main>
 </div>
 
-{% endfor %}
+<!-- ══ BOOKING MODAL ══ -->
+<div class="bk-overlay" id="bkOverlay" onclick="handleOvClick(event)">
+  <div class="bk-modal" id="bkModal">
 
+    <div class="bk-head">
+      <div class="bk-title">Book a Service</div>
+      <button class="bk-close" onclick="closeModal()">✕</button>
+    </div>
+
+    <div class="bk-body">
+      <!-- Steps -->
+      <div class="bk-steps">
+        <div class="bk-sdot current" id="sd1">1</div>
+        <div class="bk-sline" id="sl1"></div>
+        <div class="bk-sdot" id="sd2">2</div>
+        <div class="bk-sline" id="sl2"></div>
+        <div class="bk-sdot" id="sd3">3</div>
+      </div>
+      <div class="bk-slabels">
+        <span class="bk-slbl current" id="slbl1">Details</span>
+        <span class="bk-slbl" id="slbl2">Payment</span>
+        <span class="bk-slbl" id="slbl3">Confirm</span>
+      </div>
+
+      <!-- Mini provider card -->
+      <div class="prov-mini">
+        <div class="prov-mini-img" id="miniImg"><span style="font-size:1.4rem;opacity:.4">👷</span></div>
+        <div>
+          <div class="prov-mini-name" id="miniName">—</div>
+          <div class="prov-mini-svc"  id="miniSvc">—</div>
+          <div class="prov-mini-city" id="miniCity">—</div>
+        </div>
+      </div>
+
+      <!-- Step 1 -->
+      <div class="bk-panel active" id="bkS1">
+        <div class="f-row">
+          <div class="f-group"><label class="f-label">Full Name</label><input class="f-input" id="fName" type="text" placeholder="Your name"></div>
+          <div class="f-group"><label class="f-label">Phone</label><input class="f-input" id="fPhone" type="tel" placeholder="+91 98765 43210"></div>
+        </div>
+        <div class="f-row">
+          <div class="f-group"><label class="f-label">Date</label><input class="f-input" id="fDate" type="date"></div>
+          <div class="f-group"><label class="f-label">Your City</label><input class="f-input" id="fCity" type="text" placeholder="City"></div>
+        </div>
+        <div class="f-group">
+          <label class="f-label">Preferred Time Slot</label>
+          <div class="slots-grid">
+            <div class="tslot disabled">7–8 AM</div>
+            <div class="tslot" onclick="pickSlot(this)">9–10 AM</div>
+            <div class="tslot" onclick="pickSlot(this)">10–11 AM</div>
+            <div class="tslot" onclick="pickSlot(this)">11 AM–12</div>
+            <div class="tslot" onclick="pickSlot(this)">12–1 PM</div>
+            <div class="tslot disabled">1–2 PM</div>
+            <div class="tslot" onclick="pickSlot(this)">2–3 PM</div>
+            <div class="tslot" onclick="pickSlot(this)">3–4 PM</div>
+            <div class="tslot" onclick="pickSlot(this)">4–5 PM</div>
+            <div class="tslot" onclick="pickSlot(this)">5–6 PM</div>
+            <div class="tslot disabled">6–7 PM</div>
+            <div class="tslot disabled">7+ PM</div>
+          </div>
+        </div>
+        <div class="f-group"><label class="f-label">Full Address</label><input class="f-input" id="fAddr" type="text" placeholder="Flat, Society, Area"></div>
+        <div class="f-group"><label class="f-label">Describe Problem (optional)</label><textarea class="f-textarea" id="fDesc" placeholder="e.g. Fan not working…"></textarea></div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="bk-panel" id="bkS2">
+        <div class="price-box">
+          <div class="price-row"><span class="price-lbl">Service Fee</span><span class="price-val" id="pFee">₹350</span></div>
+          <div class="price-row"><span class="price-lbl">Visit Charge</span><span class="price-val">₹49</span></div>
+          <div class="price-row"><span class="price-lbl">GST (18%)</span><span class="price-val" id="pGst">₹72</span></div>
+          <div class="price-row"><span class="price-lbl" style="font-weight:700;color:#f0f0f5">Total Payable</span><span class="price-total" id="pTotal">₹471</span></div>
+        </div>
+        <div class="f-group">
+          <label class="f-label">Payment Method</label>
+          <div class="pay-methods">
+            <div class="pay-opt selected" data-m="upi" onclick="pickPay(this)"><div class="pay-opt-icon">📱</div><div class="pay-opt-name">UPI</div></div>
+            <div class="pay-opt" data-m="card" onclick="pickPay(this)"><div class="pay-opt-icon">💳</div><div class="pay-opt-name">Card</div></div>
+            <div class="pay-opt" data-m="net"  onclick="pickPay(this)"><div class="pay-opt-icon">🏦</div><div class="pay-opt-name">Net Banking</div></div>
+            <div class="pay-opt" data-m="cash" onclick="pickPay(this)"><div class="pay-opt-icon">💵</div><div class="pay-opt-name">Cash</div></div>
+          </div>
+        </div>
+        <div id="pnlUpi">
+          <div class="f-group"><label class="f-label">UPI ID</label><input class="f-input" id="fUpi" type="text" placeholder="yourname@upi"></div>
+          <div class="upi-chips">
+            <span style="font-size:.72rem;color:rgba(255,255,255,.28);font-family:'Poppins',sans-serif;align-self:center">Quick:</span>
+            <button class="upi-chip" onclick="addUpi('@okaxis')">@okaxis</button>
+            <button class="upi-chip" onclick="addUpi('@ybl')">@ybl</button>
+            <button class="upi-chip" onclick="addUpi('@paytm')">@paytm</button>
+            <button class="upi-chip" onclick="addUpi('@gpay')">@gpay</button>
+          </div>
+        </div>
+        <div id="pnlCard" style="display:none">
+          <div class="f-group"><label class="f-label">Card Number</label><input class="f-input" type="text" placeholder="1234 5678 9012 3456" maxlength="19"></div>
+          <div class="f-row3">
+            <div class="f-group"><label class="f-label">Name on Card</label><input class="f-input" type="text" placeholder="RAJ PATEL"></div>
+            <div class="f-group"><label class="f-label">Expiry</label><input class="f-input" type="text" placeholder="MM/YY" maxlength="5"></div>
+            <div class="f-group"><label class="f-label">CVV</label><input class="f-input" type="password" placeholder="•••" maxlength="4"></div>
+          </div>
+        </div>
+        <div id="pnlNet" style="display:none">
+          <div class="f-group">
+            <label class="f-label">Select Bank</label>
+            <select class="f-select">
+              <option>State Bank of India</option><option>HDFC Bank</option>
+              <option>ICICI Bank</option><option>Axis Bank</option>
+              <option>Kotak Mahindra Bank</option><option>Bank of Baroda</option><option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div id="pnlCash" style="display:none">
+          <div class="cash-notice">💵 Pay the provider directly on arrival. Keep exact change ready.</div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="bk-panel" id="bkS3">
+        <div class="success-wrap">
+          <div class="success-emoji">🎉</div>
+          <div class="success-title">Booking Confirmed!</div>
+          <p class="success-sub">Your booking is placed. The provider will contact you shortly.</p>
+          <div class="bk-ref-box">
+            <div class="bk-ref-label">Booking Reference</div>
+            <div class="bk-ref-num" id="bkRef">SN-00000000</div>
+          </div>
+          <div class="bk-cfm-tbl">
+            <div class="bk-cfm-row"><span class="cfm-k">Provider</span><span class="cfm-v" id="cfmProv">—</span></div>
+            <div class="bk-cfm-row"><span class="cfm-k">Service</span><span class="cfm-v" id="cfmSvc">—</span></div>
+            <div class="bk-cfm-row"><span class="cfm-k">Date & Time</span><span class="cfm-v" id="cfmDT">—</span></div>
+            <div class="bk-cfm-row"><span class="cfm-k">Amount</span><span class="cfm-v" style="color:#a78bfa" id="cfmAmt">—</span></div>
+          </div>
+          <button onclick="closeModal()" style="margin-top:22px;width:100%;padding:12px;background:#7c6ef5;border:none;color:#fff;border-radius:10px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;">Done</button>
+        </div>
+      </div>
+
+    </div><!-- /bk-body -->
+
+    <div class="bk-footer" id="bkFtr">
+      <button class="bk-btn-back" id="btnBack" onclick="bkBack()" style="display:none">← Back</button>
+      <button class="bk-btn-next" id="btnNext" onclick="bkNext()">Continue →</button>
+    </div>
+
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── FILTER + SORT ──
+let curFilter = 'all';
+document.querySelectorAll('.fchip').forEach(c => {
+  c.addEventListener('click', () => {
+    document.querySelectorAll('.fchip').forEach(x => x.classList.remove('active'));
+    c.classList.add('active');
+    curFilter = c.dataset.filter;
+    applyFS();
+  });
+});
+document.getElementById('sortSel').addEventListener('change', applyFS);
+
+function applyFS() {
+  const sort = document.getElementById('sortSel').value;
+  const grid = document.getElementById('provGrid');
+  const cards = Array.from(grid.querySelectorAll('.pcard'));
+  let visible = [];
+  cards.forEach(card => {
+    let show = true;
+    if (curFilter === 'available') show = card.dataset.available === 'true';
+    else if (curFilter === 'onsite')  show = card.dataset.mode === 'onsite';
+    else if (curFilter === 'remote')  show = card.dataset.mode === 'remote';
+    card.style.display = show ? '' : 'none';
+    if (show) visible.push(card);
+  });
+  visible.sort((a, b) => {
+    if (sort === 'rating-high') return parseFloat(b.dataset.rating)     - parseFloat(a.dataset.rating);
+    if (sort === 'rating-low')  return parseFloat(a.dataset.rating)     - parseFloat(b.dataset.rating);
+    if (sort === 'exp-high')    return parseInt(b.dataset.experience)   - parseInt(a.dataset.experience);
+    if (sort === 'exp-low')     return parseInt(a.dataset.experience)   - parseInt(b.dataset.experience);
+    if (sort === 'name-az')     return a.dataset.name.localeCompare(b.dataset.name);
+    return 0;
+  });
+  visible.forEach(card => grid.appendChild(card));
+  document.getElementById('visCount').textContent = visible.length;
+  document.getElementById('noResults').style.display = visible.length === 0 ? 'block' : 'none';
+}
+
+// ── BOOKING MODAL ──
+let step = 1, prov = {};
+
+function openBookingFromCard(el) {
+  openBooking({
+    name:       el.dataset.name,
+    service:    el.dataset.service,
+    city:       el.dataset.city,
+    rating:     parseFloat(el.dataset.rating),
+    experience: parseInt(el.dataset.experience),
+    available:  el.dataset.available === 'true',
+    photo:      el.dataset.photo || null,
+    mode:       el.dataset.mode
+  });
+} 
+function openBooking(p) {
+  prov = p; step = 1;
+  document.getElementById('miniName').textContent = p.name;
+  document.getElementById('miniSvc').textContent  = p.service;
+  document.getElementById('miniCity').textContent = '📍 ' + p.city + '  ★ ' + p.rating;
+  const mi = document.getElementById('miniImg');
+  mi.innerHTML = p.photo
+    ? '<img src="' + p.photo + '" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML=\'<span style=font-size:1.4rem;opacity:.4>👷</span>\'">'
+    : '<span style="font-size:1.4rem;opacity:.4">👷</span>';
+  const fee = 200 + p.experience * 25;
+  const gst = Math.round((fee + 49) * 0.18);
+  document.getElementById('pFee').textContent   = '₹' + fee;
+  document.getElementById('pGst').textContent   = '₹' + gst;
+  document.getElementById('pTotal').textContent = '₹' + (fee + 49 + gst);
+  renderStep();
+  document.getElementById('bkOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  document.getElementById('bkOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function handleOvClick(e) { if (e.target.id === 'bkOverlay') closeModal(); }
+
+function renderStep() {
+  ['bkS1','bkS2','bkS3'].forEach((id,i) => {
+    document.getElementById(id).classList.toggle('active', i+1 === step);
+  });
+  for (let i = 1; i <= 3; i++) {
+    const d = document.getElementById('sd'+i), l = document.getElementById('slbl'+i);
+    d.className = 'bk-sdot'; l.className = 'bk-slbl';
+    if (i < step) { d.classList.add('done'); d.textContent = '✓'; } else { d.textContent = i; }
+    if (i === step) { d.classList.add('current'); l.classList.add('current'); }
+  }
+  for (let i = 1; i <= 2; i++)
+    document.getElementById('sl'+i).className = 'bk-sline' + (i < step ? ' done' : '');
+  const ftr = document.getElementById('bkFtr');
+  if (step === 3) { ftr.style.display = 'none'; } else {
+    ftr.style.display = 'flex';
+    document.getElementById('btnBack').style.display = step > 1 ? '' : 'none';
+    document.getElementById('btnNext').textContent = step === 2 ? '💳 Pay Now' : 'Continue →';
+  }
+  document.getElementById('bkModal').scrollTop = 0;
+}
+function bkNext() {
+  if (step === 2) {
+    const fee = 200 + prov.experience * 25;
+    const total = fee + 49 + Math.round((fee + 49) * 0.18);
+    document.getElementById('cfmProv').textContent = prov.name;
+    document.getElementById('cfmSvc').textContent  = prov.service;
+    document.getElementById('cfmDT').textContent   = (document.getElementById('fDate').value || 'Today') + ' · ' + (document.querySelector('.tslot.selected')?.textContent || '—');
+    document.getElementById('cfmAmt').textContent  = '₹' + total;
+    document.getElementById('bkRef').textContent   = 'SN-' + Date.now().toString().slice(-8);
+  }
+  if (step < 3) { step++; renderStep(); }
+}
+function bkBack() { if (step > 1) { step--; renderStep(); } }
+
+function pickSlot(el) {
+  if (el.classList.contains('disabled')) return;
+  document.querySelectorAll('.tslot').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+}
+const payPnls = { upi:'pnlUpi', card:'pnlCard', net:'pnlNet', cash:'pnlCash' };
+function pickPay(el) {
+  document.querySelectorAll('.pay-opt').forEach(m => m.classList.remove('selected'));
+  el.classList.add('selected');
+  Object.values(payPnls).forEach(id => document.getElementById(id).style.display = 'none');
+  const pnl = payPnls[el.dataset.m];
+  if (pnl) document.getElementById(pnl).style.display = '';
+}
+function addUpi(sfx) {
+  const inp = document.getElementById('fUpi');
+  inp.value = (inp.value.replace(/@.*/, '') || 'yourname') + sfx;
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const d = document.getElementById('fDate');
+  if (d) d.min = new Date().toISOString().split('T')[0];
+});
+</script>
+{% endblock %}

@@ -20,7 +20,7 @@
           <div style="width:44px;height:44px;background:rgba(79,110,247,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">📧</div>
           <div>
             <div style="font-weight:600;font-size:0.9rem;margin-bottom:2px">Email</div>
-            <div style="color:rgba(240,244,255,0.5);font-size:0.88rem">support@sernest.in</div>
+            <div style="color:rgba(240,244,255,0.5);font-size:0.88rem">supportsernest@gmail.com</div>
           </div>
         </div>
         <div style="display:flex;gap:14px;align-items:flex-start">
@@ -39,32 +39,105 @@
         </div>
       </div>
     </div>
-
+    
     <div style="background:rgba(8,14,30,0.6);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:36px" class="animate-on-scroll">
-      <h3 style="font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:24px">Send us a message</h3>
-      <form method="post">
+     
+      <h3 style="font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:24px">
+        Send us a message
+      </h3>
+      
+      
+      <form method="POST" >
         {% csrf_token %}
+        
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          
           <div>
             <label style="display:block;font-size:0.8rem;color:rgba(240,244,255,0.5);margin-bottom:6px">Name</label>
-            <input type="text" class="search-input" placeholder="Your name" style="width:100%;padding:12px 14px">
+            <input type="text" id="name" name="name"
+            class="search-input"
+            placeholder="Your name"
+            style="width:100%;padding:12px 14px"
+            required>
           </div>
           <div>
             <label style="display:block;font-size:0.8rem;color:rgba(240,244,255,0.5);margin-bottom:6px">Email</label>
-            <input type="email" class="search-input" placeholder="you@example.com" style="width:100%;padding:12px 14px">
+            <input type="email" id="email" name="email"
+            class="search-input"
+            placeholder="you@example.com"
+            style="width:100%;padding:12px 14px"
+            required>
           </div>
         </div>
         <div style="margin-bottom:14px">
           <label style="display:block;font-size:0.8rem;color:rgba(240,244,255,0.5);margin-bottom:6px">Subject</label>
-          <input type="text" class="search-input" placeholder="How can we help?" style="width:100%;padding:12px 16px">
+          <input type="text" id="subject" name="subject"
+          class="search-input"
+          placeholder="How can we help?"
+          style="width:100%;padding:12px 16px"
+          required>
         </div>
         <div style="margin-bottom:24px">
           <label style="display:block;font-size:0.8rem;color:rgba(240,244,255,0.5);margin-bottom:6px">Message</label>
-          <textarea class="search-input" rows="5" placeholder="Tell us more..." style="width:100%;padding:12px 16px;resize:vertical;font-family:inherit"></textarea>
+          <textarea id="message" name="message"
+          class="search-input"
+          rows="5"
+          placeholder="Tell us more..."
+          style="width:100%;padding:12px 16px;resize:vertical;font-family:inherit"
+          required></textarea>
         </div>
-        <button type="submit" class="btn-primary btn-large" style="width:100%;text-align:center;border-radius:12px">Send Message</button>
-      </form>
+        
+        <button type="submit"
+        class="btn-primary btn-large"
+        style="width:100%;text-align:center;border-radius:12px">
+        Send Message 
+      </button>
+    </form>
+    {% if messages %}
+    {% for message in messages %}
+    <div class = "message-box">
+      {{ message }}
     </div>
+    {% endfor %}
+{% endif %}
+   <p style="margin-top:15px;color:#7cf29a;font-size:14px"></p>
   </div>
+</div>
 </section>
 {% endblock %}
+
+
+   <!-- <div style="background:rgba(8,14,30,0.6);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:36px" class="animate-on-scroll">
+    <h3 style="font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:24px">
+      Send us a message
+    </h3>
+    
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+        <div>
+          <label style="display:block;font-size:0.8rem;color:rgba(240,244,255,0.5);margin-bottom:6px">Name</label>
+          <input type="text" id="name" class="search-input" placeholder="Your name" style="width:100%;padding:12px 14px" required>
+        </div>
+        <div>
+          <label style="display:block;font-size:0.8rem;color:rgba(240,244,255,0.5);margin-bottom:6px">Email</label>
+          <input type="email" id="email" class="search-input" placeholder="you@example.com" style="width:100%;padding:12px 14px" required>
+        </div>
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:0.8rem;color:rgba(240,244,255,0.5);margin-bottom:6px">Subject</label>
+        <input type="text" id="subject" class="search-input" placeholder="How can we help?" style="width:100%;padding:12px 16px" required>
+      </div>
+
+
+      <div style="margin-bottom:24px">
+        <label style="display:block;font-size:0.8rem;color:rgba(240,244,255,0.5);margin-bottom:6px">Message</label>
+        <textarea id="message" class="search-input" rows="5" placeholder="Tell us more..." style="width:100%;padding:12px 16px;resize:vertical;font-family:inherit" required></textarea>
+      </div>
+      
+      <button type="submit" class="btn-primary btn-large" style="width:100%;text-align:center;border-radius:12px">
+        Send Message
+      </button>
+    </form>
+    <p id="form-status" style="margin-top:15px;color:#7cf29a;font-size:14px"></p>
+  </div> -->
+<!-- </div>
+</section>
