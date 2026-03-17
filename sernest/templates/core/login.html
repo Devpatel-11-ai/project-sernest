@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}Login — SerNest{% endblock %}
-
+{% csrf_token %}
 {% block content %}
 <section class="hero" style="min-height:100vh;align-items:center;justify-content:center">
   <div class="hero-orb hero-orb-1"></div>
@@ -18,40 +18,42 @@
         <p style="color:rgba(240,244,255,0.5);font-size:0.88rem">Sign in to your account</p>
       </div>
 
-      <!-- ── Django Messages ── -->
       {% if messages %}
         {% for msg in messages %}
-          <div style="margin-bottom:16px;padding:12px 16px;border-radius:10px;font-size:0.85rem;font-weight:500;
-            {% if 'error' in msg.tags or '❌' in msg.message %}
-              background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:#f87171;
-            {% else %}
-              background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);color:#4ade80;
-            {% endif %}
-          ">
-            {{ msg }}
-          </div>
+          {% if 'error' in msg.tags %}
+            <div style="margin-bottom:16px;padding:12px 16px;border-radius:10px;font-size:0.85rem;font-weight:500;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:#f87171;">
+              {{ msg }}
+            </div>
+          {% else %}
+            <div style="margin-bottom:16px;padding:12px 16px;border-radius:10px;font-size:0.85rem;font-weight:500;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);color:#4ade80;">
+              {{ msg }}
+            </div>
+          {% endif %}
         {% endfor %}
       {% endif %}
 
-      <form method="post" action="{% url 'login' %}">
+      <form method="POST">
         {% csrf_token %}
 
         <div style="margin-bottom:18px">
-          <label style="display:block;font-size:0.82rem;font-weight:600;color:rgba(240,244,255,0.6);margin-bottom:8px;letter-spacing:0.3px">Email Address</label>
+          <label style="display:block;font-size:0.82rem;font-weight:600;color:rgba(240,244,255,0.6);margin-bottom:8px;letter-spacing:0.3px">
+            Email Address
+          </label>
           <input
             type="email"
             name="email"
             class="search-input"
             placeholder="you@example.com"
             style="width:100%;padding:13px 16px"
-            value="{{ request.POST.email }}"
             required
             autocomplete="email"
           >
         </div>
 
         <div style="margin-bottom:24px">
-          <label style="display:block;font-size:0.82rem;font-weight:600;color:rgba(240,244,255,0.6);margin-bottom:8px;letter-spacing:0.3px">Password</label>
+          <label style="display:block;font-size:0.82rem;font-weight:600;color:rgba(240,244,255,0.6);margin-bottom:8px;letter-spacing:0.3px">
+            Password
+          </label>
           <input
             type="password"
             name="password"
@@ -74,11 +76,11 @@
       <div style="text-align:center;margin-top:24px;padding-top:24px;border-top:1px solid rgba(255,255,255,0.06)">
         <p style="color:rgba(240,244,255,0.5);font-size:0.88rem">
           Don't have an account?
-          <a href="{% url 'register' %}" style="color:#a5b4fc;text-decoration:none;font-weight:600">Sign up free</a>
+          <a href="{% url 'core:register' %}" style="color:#a5b4fc;text-decoration:none;font-weight:600">Sign up free</a>
         </p>
         <p style="color:rgba(240,244,255,0.5);font-size:0.88rem;margin-top:10px">
           Are you a service provider?
-          <a href="{% url 'provider_register' %}" style="color:#a5b4fc;text-decoration:none;font-weight:600">Join here</a>
+          <a href="{% url 'core:provider_register' %}" style="color:#a5b4fc;text-decoration:none;font-weight:600">Join here</a>
         </p>
       </div>
 

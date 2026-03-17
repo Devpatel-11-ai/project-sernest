@@ -1,0 +1,692 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Provider Profile — SerNest{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+  --bg:#07080f; --card:#0f1018; --card2:#13141d;
+  --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.13);
+  --accent:#059669; --accent2:#34d399;
+  --accent-glow:rgba(5,150,105,0.2);
+  --text:#f0f0f8; --muted:#6b6d82;
+  --purple:#6c63ff; --purple2:#a78bfa;
+}
+
+.prof-wrap { display:flex; min-height:calc(100vh - 70px); padding-top:70px; background:var(--bg); }
+
+/* ── SIDEBAR ── */
+.prof-sidebar {
+  width:260px; position:fixed; top:70px; left:0; bottom:0;
+  background:#0b0c14; border-right:1px solid var(--border);
+  display:flex; flex-direction:column; padding:0; z-index:40; overflow-y:auto;
+}
+.prof-sidebar-hero {
+  padding:32px 24px 24px; border-bottom:1px solid var(--border); text-align:center;
+}
+.prof-big-avatar {
+  width:84px; height:84px; border-radius:50%;
+  background:linear-gradient(135deg,#059669,#34d399);
+  display:flex; align-items:center; justify-content:center;
+  font-size:2rem; font-weight:800; color:#fff;
+  margin:0 auto 12px; font-family:'Poppins',sans-serif;
+  overflow:hidden; border:3px solid rgba(5,150,105,0.4);
+  box-shadow:0 0 28px rgba(5,150,105,0.25);
+}
+.prof-big-avatar img { width:100%; height:100%; object-fit:cover; }
+.prof-sidebar-name { font-family:'Poppins',sans-serif; font-size:1rem; font-weight:700; color:var(--text); }
+.prof-sidebar-svc  { font-size:0.78rem; color:var(--accent2); margin-top:3px; font-family:'Poppins',sans-serif; font-weight:600; }
+.prof-sidebar-city { font-size:0.73rem; color:var(--muted); margin-top:2px; font-family:'Poppins',sans-serif; }
+.avail-pill {
+  display:inline-flex; align-items:center; gap:6px;
+  margin-top:10px; padding:5px 14px;
+  border-radius:20px; font-size:0.73rem; font-weight:600;
+  font-family:'Poppins',sans-serif; cursor:pointer;
+  transition:all .2s;
+}
+.avail-pill.on  { background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.3); color:#4ade80; }
+.avail-pill.off { background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.25); color:#f87171; }
+.avail-dot { width:7px; height:7px; border-radius:50%; }
+.avail-pill.on  .avail-dot { background:#4ade80; }
+.avail-pill.off .avail-dot { background:#f87171; }
+
+/* Rating badge */
+.rating-badge {
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  margin-top:12px; padding:8px 16px;
+  background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.25);
+  border-radius:10px;
+}
+.rating-badge .r-num { font-size:1.3rem; font-weight:800; color:#fcd34d; font-family:'Poppins',sans-serif; }
+.rating-badge .r-lbl { font-size:0.72rem; color:var(--muted); font-family:'Poppins',sans-serif; }
+
+/* Sidebar nav */
+.prof-nav { padding:16px 12px; }
+.prof-nav-item {
+  display:flex; align-items:center; gap:10px; padding:10px 12px;
+  border-radius:10px; cursor:pointer; text-decoration:none;
+  color:var(--muted); font-size:0.85rem; font-family:'Poppins',sans-serif;
+  font-weight:500; transition:all .2s; margin-bottom:2px; border:1px solid transparent;
+}
+.prof-nav-item:hover { background:rgba(255,255,255,0.05); color:var(--text); text-decoration:none; }
+.prof-nav-item.active { background:rgba(5,150,105,0.1); border-color:rgba(5,150,105,0.3); color:var(--accent2); }
+.prof-nav-icon { font-size:1rem; width:20px; text-align:center; }
+
+/* ── MAIN ── */
+.prof-main { margin-left:260px; flex:1; padding:36px 40px 60px; background:var(--bg); }
+.prof-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:32px; }
+.prof-page-title { font-family:'Poppins',sans-serif; font-size:1.6rem; font-weight:800; color:var(--text); }
+.prof-page-sub { font-size:0.84rem; color:var(--muted); margin-top:3px; font-family:'Poppins',sans-serif; }
+.save-btn {
+  padding:10px 24px; background:var(--accent); border:none;
+  color:#fff; border-radius:10px; font-size:0.88rem; font-weight:600;
+  cursor:pointer; font-family:'Poppins',sans-serif; transition:all .2s;
+}
+.save-btn:hover { background:var(--accent2); color:#052e16; box-shadow:0 0 22px var(--accent-glow); }
+
+/* Stats strip */
+.prof-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
+.pstat {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:12px; padding:16px; text-align:center;
+}
+.pstat-num { font-family:'Poppins',sans-serif; font-size:1.6rem; font-weight:800; color:var(--text); }
+.pstat-lbl { font-size:0.74rem; color:var(--muted); margin-top:3px; font-family:'Poppins',sans-serif; }
+
+/* Section cards */
+.prof-section { background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:20px; display:none; }
+.prof-section.active { display:block; }
+.prof-section-head {
+  display:flex; align-items:center; gap:12px; padding:20px 24px;
+  border-bottom:1px solid var(--border); background:var(--card2);
+}
+.prof-section-icon {
+  width:38px; height:38px; border-radius:10px;
+  background:rgba(5,150,105,0.1); border:1px solid rgba(5,150,105,0.25);
+  display:flex; align-items:center; justify-content:center; font-size:1rem;
+}
+.prof-section-title { font-family:'Poppins',sans-serif; font-size:0.95rem; font-weight:700; color:var(--text); }
+.prof-section-desc  { font-size:0.76rem; color:var(--muted); font-family:'Poppins',sans-serif; margin-top:1px; }
+.prof-section-body { padding:24px; }
+
+/* Forms */
+.form-grid  { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+.f-group { display:flex; flex-direction:column; }
+.f-label { font-size:0.78rem; font-weight:600; color:rgba(255,255,255,0.4); margin-bottom:7px; letter-spacing:.03em; font-family:'Poppins',sans-serif; }
+.f-input,.f-select,.f-textarea {
+  background:#0b0c14; border:1px solid var(--border); color:var(--text);
+  padding:11px 13px; border-radius:10px; font-size:0.87rem;
+  font-family:'Poppins',sans-serif; outline:none; transition:border-color .2s;
+}
+.f-input:focus,.f-select:focus,.f-textarea:focus { border-color:var(--accent); }
+.f-input::placeholder { color:rgba(255,255,255,0.18); }
+.f-textarea { resize:vertical; min-height:80px; }
+
+/* Photo upload */
+.photo-upload-area {
+  display:flex; align-items:center; gap:20px; padding:20px;
+  background:var(--card2); border:1px solid var(--border);
+  border-radius:12px; margin-bottom:20px;
+}
+.photo-preview {
+  width:72px; height:72px; border-radius:50%;
+  background:linear-gradient(135deg,#059669,#34d399);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.6rem; font-weight:800; color:#fff;
+  font-family:'Poppins',sans-serif; flex-shrink:0; overflow:hidden;
+  border:2px solid rgba(5,150,105,0.4);
+}
+.photo-preview img { width:100%; height:100%; object-fit:cover; }
+.photo-upload-btn {
+  padding:9px 18px; background:rgba(255,255,255,0.06);
+  border:1px solid var(--border2); color:var(--text); border-radius:9px;
+  font-size:0.83rem; cursor:pointer; font-family:'Poppins',sans-serif;
+  font-weight:500; transition:all .2s;
+}
+.photo-upload-btn:hover { border-color:var(--accent); color:var(--accent2); }
+.photo-hint { font-size:0.74rem; color:var(--muted); margin-top:4px; font-family:'Poppins',sans-serif; }
+
+/* Skills tags */
+.skills-wrap { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
+.skill-tag {
+  padding:5px 13px; border-radius:20px;
+  background:rgba(5,150,105,0.1); border:1px solid rgba(5,150,105,0.25);
+  color:var(--accent2); font-size:0.78rem; font-weight:600;
+  font-family:'Poppins',sans-serif; cursor:pointer; transition:all .2s;
+  display:flex; align-items:center; gap:5px;
+}
+.skill-tag:hover { background:rgba(5,150,105,0.2); }
+.skill-tag .remove { color:rgba(255,255,255,0.3); font-size:0.7rem; }
+.skill-add-input {
+  background:#0b0c14; border:1px dashed rgba(5,150,105,0.3);
+  color:var(--text); padding:5px 12px; border-radius:20px;
+  font-size:0.78rem; font-family:'Poppins',sans-serif; outline:none;
+  width:140px; transition:border-color .2s;
+}
+.skill-add-input:focus { border-color:var(--accent); }
+
+/* Working days checkboxes */
+.days-grid { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
+.day-chip {
+  padding:7px 14px; border-radius:8px; cursor:pointer;
+  border:1px solid var(--border); background:var(--card2);
+  color:var(--muted); font-size:0.8rem; font-weight:600;
+  font-family:'Poppins',sans-serif; transition:all .2s; user-select:none;
+}
+.day-chip.selected { background:rgba(5,150,105,0.15); border-color:rgba(5,150,105,0.35); color:var(--accent2); }
+
+/* Reviews */
+.review-card {
+  background:var(--card2); border:1px solid var(--border);
+  border-radius:12px; padding:16px; margin-bottom:12px;
+}
+.review-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.review-name   { font-size:0.88rem; font-weight:600; color:var(--text); font-family:'Poppins',sans-serif; }
+.review-stars  { color:#f59e0b; font-size:0.85rem; }
+.review-date   { font-size:0.72rem; color:var(--muted); font-family:'Poppins',sans-serif; }
+.review-text   { font-size:0.83rem; color:rgba(255,255,255,0.55); font-family:'Poppins',sans-serif; line-height:1.6; }
+
+/* Settings toggles */
+.setting-row { display:flex; align-items:center; justify-content:space-between; padding:16px 0; border-bottom:1px solid var(--border); }
+.setting-row:last-child { border-bottom:none; }
+.setting-name { font-size:0.88rem; font-weight:600; color:var(--text); font-family:'Poppins',sans-serif; }
+.setting-desc { font-size:0.76rem; color:var(--muted); margin-top:2px; font-family:'Poppins',sans-serif; }
+.toggle-switch { position:relative; width:44px; height:24px; }
+.toggle-switch input { opacity:0; width:0; height:0; }
+.toggle-slider { position:absolute; inset:0; background:#1e1f2e; border-radius:24px; cursor:pointer; transition:.3s; border:1px solid var(--border); }
+.toggle-slider::before { content:''; position:absolute; width:18px; height:18px; left:2px; bottom:2px; background:rgba(255,255,255,0.4); border-radius:50%; transition:.3s; }
+.toggle-switch input:checked + .toggle-slider { background:var(--accent); border-color:var(--accent); }
+.toggle-switch input:checked + .toggle-slider::before { transform:translateX(20px); background:#fff; }
+
+/* Toast */
+.prof-toast { position:fixed; top:84px; right:20px; z-index:9999; padding:12px 20px; border-radius:10px; font-size:0.85rem; font-weight:600; font-family:'Poppins',sans-serif; background:#dcfce7; color:#15803d; border:1px solid #86efac; display:none; animation:toastIn .3s ease; }
+.prof-toast.show { display:block; }
+@keyframes toastIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+
+@media(max-width:900px) {
+  .form-grid { grid-template-columns:1fr; }
+  .prof-sidebar { display:none; } .prof-main { margin-left:0; padding:24px 16px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="prof-wrap">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="prof-sidebar">
+    <div class="prof-sidebar-hero">
+      <div class="prof-big-avatar" id="sidebarAvatar">
+        {% if provider and provider.profile_image %}
+          <img src="{{ provider.profile_image.url }}" alt="{{ provider.name }}">
+        {% else %}
+          {{ request.user.first_name|first|upper|default:"P" }}
+        {% endif %}
+      </div>
+      <div class="prof-sidebar-name">{% if provider %}{{ provider.name }}{% else %}{{ request.user.first_name }}{% endif %}</div>
+      <div class="prof-sidebar-svc">{{ provider.category.name|default:"Service Provider" }}</div>
+      <div class="prof-sidebar-city">📍 {{ provider.city|default:"—" }}</div>
+
+      <!-- Availability toggle pill -->
+    <div class="avail-pill {% if provider and provider.available %}on{% else %}off{% endif %}"
+     id="availPill" onclick="toggleAvail()">
+     <span class="avail-dot"></span>
+     <span id="availText">{% if provider and provider.available %}Available{% else %}Unavailable{% endif %}</span>
+    </div>
+
+      <!-- Rating -->
+      <div class="rating-badge">
+        <span class="r-num">⭐ {{ provider.rating|default:"4.5" }}</span>
+        <div>
+          <div class="r-lbl">Average Rating</div>
+          <div class="r-lbl">{{ provider.experience|default:"0" }} yrs experience</div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="prof-nav">
+      <a class="prof-nav-item active" onclick="showSection('professional',this)" href="#">
+        <span class="prof-nav-icon">🧑‍🔧</span> Professional Info
+      </a>
+      <a class="prof-nav-item" onclick="showSection('services',this)" href="#">
+        <span class="prof-nav-icon">🛠</span> Service Details
+      </a>
+      <a class="prof-nav-item" onclick="showSection('availability',this)" href="#">
+        <span class="prof-nav-icon">📅</span> Availability
+      </a>
+      <a class="prof-nav-item" onclick="showSection('reviews',this)" href="#">
+        <span class="prof-nav-icon">⭐</span> Reviews & Ratings
+      </a>
+      <a class="prof-nav-item" onclick="showSection('settings',this)" href="#">
+        <span class="prof-nav-icon">⚙️</span> Settings
+      </a>
+      <div style="padding-top:16px;border-top:1px solid var(--border);margin-top:12px">
+        <a href="{% url 'core:provider_dashboard' %}" class="prof-nav-item">
+          <span class="prof-nav-icon">📊</span> Dashboard
+        </a>
+        <a href="{% url 'core:logout' %}" class="prof-nav-item" style="color:rgba(248,113,113,0.7)">
+          <span class="prof-nav-icon">🚪</span> Sign Out
+        </a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ══ MAIN ══ -->
+  <main class="prof-main">
+    <div class="prof-topbar">
+      <div>
+        <div class="prof-page-title">Provider Profile</div>
+        <div class="prof-page-sub">Manage your services, availability and professional details</div>
+      </div>
+      <button class="save-btn" onclick="saveProfile()">Save Changes ✓</button>
+    </div>
+
+    <!-- Stats strip -->
+    <div class="prof-stats">
+      <div class="pstat">
+        <div class="pstat-num">{{ provider.rating|default:"4.5" }} ⭐</div>
+        <div class="pstat-lbl">Average Rating</div>
+      </div>
+      <div class="pstat">
+        <div class="pstat-num">{{ completed_jobs|default:"0" }}</div>
+        <div class="pstat-lbl">Completed Jobs</div>
+      </div>
+      <div class="pstat">
+        <div class="pstat-num">{{ provider.experience|default:"0" }} yrs</div>
+        <div class="pstat-lbl">Experience</div>
+      </div>
+    </div>
+
+    <!-- ── PROFESSIONAL INFO ── -->
+    <div class="prof-section active" id="sec-professional">
+      <div class="prof-section-head">
+        <div class="prof-section-icon">🧑‍🔧</div>
+        <div>
+          <div class="prof-section-title">Professional Information</div>
+          <div class="prof-section-desc">Your public profile that customers see when browsing providers.</div>
+        </div>
+      </div>
+      <div class="prof-section-body">
+        <form method="post" enctype="multipart/form-data" id="professionalForm">
+          {% csrf_token %}
+          <input type="hidden" name="section" value="professional">
+
+          <div class="photo-upload-area">
+            <div class="photo-preview" id="photoPreview">
+              {% if provider and provider.profile_image %}
+                <img src="{{ provider.profile_image.url }}" alt="">
+              {% else %}
+                {{ request.user.first_name|first|upper|default:"P" }}
+              {% endif %}
+            </div>
+            <div>
+              <label class="photo-upload-btn" for="photoInput">📷 Upload Photo</label>
+              <input type="file" id="photoInput" name="profile_image" accept="image/*" style="display:none" onchange="previewPhoto(this)">
+              <div class="photo-hint" style="margin-top:15px">JPG, PNG or WEBP · Max 2MB * Shown to Customer</div>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="f-group">
+              <label class="f-label">Full Name</label>
+              <input class="f-input" type="text" name="name"
+                     value="{{ provider.name|default:'' }}" placeholder="Dev Patel">
+            </div>
+            <div class="f-group">
+              <label class="f-label">Phone Number</label>
+              <input class="f-input" type="tel" name="phone"
+                     value="{{ provider.phone|default:'' }}" placeholder="+91 98765 43210">
+            </div>
+            <div class="f-group">
+              <label class="f-label">Email Address</label>
+              <input class="f-input" type="email" name="email"
+                     value="{{ provider.email|default:'' }}" placeholder="you@example.com">
+            </div>
+            <div class="f-group">
+              <label class="f-label">Service Category</label>
+              <select class="f-select" name="category">
+                {% for cat in categories %}
+                  <option value="{{ cat.id }}"
+                    {% if provider.category.id == cat.id %}selected{% endif %}>
+                    {{ cat.icon }} {{ cat.name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="f-group">
+              <label class="f-label">Years of Experience</label>
+              <input class="f-input" type="number" name="experience" min="0"
+                     value="{{ provider.experience|default:'0' }}" placeholder="5">
+            </div>
+            <div class="f-group">
+              <label class="f-label">City / Service Area</label>
+              <input class="f-input" type="text" name="city"
+                     value="{{ provider.city|default:'' }}" placeholder="Ahmedabad">
+            </div>
+            <div class="f-group">
+              <label class="f-label">Work Type</label>
+              <select class="f-select" name="work_type">
+                <option value="local"      {% if provider.work_type == 'local' %}selected{% endif %}>Local Worker</option>
+                <option value="freelancer" {% if provider.work_type == 'freelancer' %}selected{% endif %}>Freelancer</option>
+                <option value="company"   {% if provider.work_type == 'company' %}selected{% endif %}>Company / Agency</option>
+              </select>
+            </div>
+            <div class="f-group">
+              <label class="f-label">Service Mode</label>
+              <select class="f-select" name="mode">
+                <option value="onsite" {% if provider.mode == 'onsite' %}selected{% endif %}>On-site</option>
+                <option value="remote" {% if provider.mode == 'remote' %}selected{% endif %}>Remote</option>
+                <option value="both"   {% if provider.mode == 'both' %}selected{% endif %}>Both</option>
+              </select>
+            </div>
+            <div class="f-group" style="grid-column:1/-1">
+              <label class="f-label">About / Bio</label>
+              <textarea class="f-textarea" name="bio" placeholder="Tell customers about your expertise, experience and what makes you reliable…">{{ provider.bio|default:'' }}</textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── SERVICE DETAILS ── -->
+    <div class="prof-section" id="sec-services">
+      <div class="prof-section-head">
+        <div class="prof-section-icon">🛠</div>
+        <div>
+          <div class="prof-section-title">Service Details</div>
+          <div class="prof-section-desc">Set your pricing and additional skills.</div>
+        </div>
+      </div>
+      <div class="prof-section-body">
+        <div class="form-grid">
+          <div class="f-group">
+            <label class="f-label">Primary Service</label>
+            <input class="f-input" type="text"
+                   value="{{ provider.category.name|default:'' }}" readonly
+                   style="opacity:0.6;cursor:not-allowed">
+          </div>
+          <div class="f-group">
+            <label class="f-label">Hourly Rate (₹)</label>
+            <input class="f-input" type="number" name="hourly_rate"
+                   value="{{ provider.hourly_rate|default:'' }}" placeholder="e.g. 500">
+          </div>
+          <div class="f-group">
+            <label class="f-label">Minimum Service Charge (₹)</label>
+            <input class="f-input" type="number" name="min_charge"
+                   value="{{ provider.min_charge|default:'' }}" placeholder="e.g. 299">
+          </div>
+          <div class="f-group">
+            <label class="f-label">Service Radius (km)</label>
+            <input class="f-input" type="number" name="radius"
+                   value="{{ provider.radius|default:'' }}" placeholder="e.g. 15">
+          </div>
+        </div>
+
+        <div style="margin-top:20px">
+          <label class="f-label">Additional Skills</label>
+          <div class="skills-wrap" id="skillsWrap">
+            <span class="skill-tag" onclick="removeSkill(this)">Wiring <span class="remove">✕</span></span>
+            <span class="skill-tag" onclick="removeSkill(this)">Panel Board <span class="remove">✕</span></span>
+            <span class="skill-tag" onclick="removeSkill(this)">Fan Installation <span class="remove">✕</span></span>
+            <input class="skill-add-input" id="skillInput" placeholder="+ Add skill" onkeydown="addSkill(event)">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── AVAILABILITY ── -->
+    <div class="prof-section" id="sec-availability">
+      <div class="prof-section-head">
+        <div class="prof-section-icon">📅</div>
+        <div>
+          <div class="prof-section-title">Availability</div>
+          <div class="prof-section-desc">Set your working schedule and availability status.</div>
+        </div>
+      </div>
+      <div class="prof-section-body">
+        <div class="f-group" style="margin-bottom:20px">
+          <label class="f-label">Working Days</label>
+          <div class="days-grid">
+            {% for day in days_list %}
+            <div class="day-chip {% if day != 'Sun' %}selected{% endif %}" onclick="toggleDay(this)">{{ day }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="f-group">
+            <label class="f-label">Start Time</label>
+            <input class="f-input" type="time" name="start_time" value="09:00">
+          </div>
+          <div class="f-group">
+            <label class="f-label">End Time</label>
+            <input class="f-input" type="time" name="end_time" value="18:00">
+          </div>
+        </div>
+
+        <div style="margin-top:20px">
+          <div class="setting-row">
+            <div>
+              <div class="setting-name">Currently Available</div>
+              <div class="setting-desc">Toggle your availability in real-time</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="availToggleForm" {% if provider.available %}checked{% endif %} onchange="syncAvailPill(this)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-name">Accept Emergency Calls</div>
+              <div class="setting-desc">Be available for urgent same-day bookings</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── REVIEWS ── -->
+    <div class="prof-section" id="sec-reviews">
+      <div class="prof-section-head">
+        <div class="prof-section-icon">⭐</div>
+        <div>
+          <div class="prof-section-title">Reviews & Ratings</div>
+          <div class="prof-section-desc">What customers say about your services.</div>
+        </div>
+      </div>
+      <div class="prof-section-body">
+        <!-- Rating summary -->
+        <div style="display:flex;align-items:center;gap:24px;padding:20px;background:var(--card2);border:1px solid var(--border);border-radius:12px;margin-bottom:20px">
+          <div style="text-align:center">
+            <div style="font-family:'Poppins',sans-serif;font-size:3rem;font-weight:900;color:#fcd34d;line-height:1">
+              {{ provider.rating|default:"4.5" }}
+            </div>
+            <div style="color:#f59e0b;font-size:1.1rem;margin:4px 0">★★★★★</div>
+            <div style="font-size:0.74rem;color:var(--muted);font-family:'Poppins',sans-serif">
+              {{ completed_jobs|default:"0" }} reviews
+            </div>
+          </div>
+          <div style="flex:1">
+            {% for i in rating_levels %}
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <span style="font-size:0.75rem;color:var(--muted);width:14px;font-family:'Poppins',sans-serif">{{ i }}</span>
+              <div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+                <div style="height:100%;background:#f59e0b;border-radius:3px;
+                  width:{% if i == '5' %}70%{% elif i == '4' %}20%{% elif i == '3' %}7%{% else %}3%{% endif %}"></div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Sample reviews -->
+        {% if reviews %}
+          {% for rev in reviews %}
+          <div class="review-card">
+            <div class="review-header">
+              <div>
+                <div class="review-name">{{ rev.customer_name }}</div>
+                <div class="review-stars">{% for i in "12345" %}{% if forloop.counter <= rev.rating %}★{% else %}☆{% endif %}{% endfor %}</div>
+              </div>
+              <div class="review-date">{{ rev.date }}</div>
+            </div>
+            <div class="review-text">{{ rev.comment }}</div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <!-- Placeholder reviews for demo -->
+          <div class="review-card">
+            <div class="review-header">
+              <div><div class="review-name">Amit Shah</div><div class="review-stars">★★★★★</div></div>
+              <div class="review-date">12 Mar 2026</div>
+            </div>
+            <div class="review-text">Excellent work! Very professional and completed the job on time. Highly recommended.</div>
+          </div>
+          <div class="review-card">
+            <div class="review-header">
+              <div><div class="review-name">Priya Mehta</div><div class="review-stars">★★★★☆</div></div>
+              <div class="review-date">8 Mar 2026</div>
+            </div>
+            <div class="review-text">Good service, arrived on time and fixed the issue quickly. Will hire again.</div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- ── SETTINGS ── -->
+    <div class="prof-section" id="sec-settings">
+      <div class="prof-section-head">
+        <div class="prof-section-icon">⚙️</div>
+        <div>
+          <div class="prof-section-title">Account Settings</div>
+          <div class="prof-section-desc">Manage notifications and account security.</div>
+        </div>
+      </div>
+      <div class="prof-section-body">
+        <div class="setting-row">
+          <div><div class="setting-name">New Booking Notifications</div><div class="setting-desc">Get notified when a customer books your service</div></div>
+          <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-name">Payment Alerts</div><div class="setting-desc">Receive alerts when payment is completed</div></div>
+          <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-name">Review Notifications</div><div class="setting-desc">Get notified when a customer leaves a review</div></div>
+          <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-name">Profile Visibility</div><div class="setting-desc">Make your profile visible to customers</div></div>
+          <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+        </div>
+
+        <div style="margin-top:20px">
+          <div class="f-group" style="margin-bottom:14px">
+            <label class="f-label">New Password</label>
+            <input class="f-input" type="password" name="new_password" placeholder="Leave blank to keep current">
+          </div>
+          <div class="f-group">
+            <label class="f-label">Confirm Password</label>
+            <input class="f-input" type="password" name="confirm_password" placeholder="Repeat new password">
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="prof-toast" id="profToast">✅ Profile updated successfully!</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showSection(id, el) {
+  event.preventDefault();
+  document.querySelectorAll('.prof-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.prof-nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  el.classList.add('active');
+}
+
+function saveProfile() {
+  const activeSection = document.querySelector('.prof-section.active');
+  const form = activeSection ? activeSection.querySelector('form') : null;
+  if (form) { form.submit(); return; }
+  showToast();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('profToast');
+  if (msg) t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function previewPhoto(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const p = document.getElementById('photoPreview');
+      p.innerHTML = '<img src="' + e.target.result + '" alt="preview">';
+      const sa = document.getElementById('sidebarAvatar');
+      if (sa) sa.innerHTML = '<img src="' + e.target.result + '" alt="preview" style="width:100%;height:100%;object-fit:cover">';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function toggleDay(el) { el.classList.toggle('selected'); }
+
+function addSkill(e) {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    const inp = document.getElementById('skillInput');
+    const val = inp.value.trim().replace(',','');
+    if (!val) return;
+    const tag = document.createElement('span');
+    tag.className = 'skill-tag';
+    tag.innerHTML = val + ' <span class="remove" onclick="removeSkill(this.parentElement)">✕</span>';
+    document.getElementById('skillsWrap').insertBefore(tag, inp);
+    inp.value = '';
+  }
+}
+
+function removeSkill(el) { el.remove(); }
+
+function toggleAvail() {
+  const pill   = document.getElementById('availPill');
+  const txt    = document.getElementById('availText');
+  const toggle = document.getElementById('availToggleForm');
+  const isOn   = pill.classList.contains('on');
+  pill.classList.toggle('on', !isOn);
+  pill.classList.toggle('off', isOn);
+  txt.textContent = isOn ? 'Unavailable' : 'Available';
+  if (toggle) toggle.checked = !isOn;
+}
+
+function syncAvailPill(el) {
+  const pill = document.getElementById('availPill');
+  const txt  = document.getElementById('availText');
+  if (el.checked) {
+    pill.className = 'avail-pill on';
+    txt.textContent = 'Available';
+  } else {
+    pill.className = 'avail-pill off';
+    txt.textContent = 'Unavailable';
+  }
+}
+
+{% if messages %}
+  {% for msg in messages %}
+    {% if 'success' in msg.tags %}
+      document.addEventListener('DOMContentLoaded', () => showToast('{{ msg }}'));
+    {% endif %}
+  {% endfor %}
+{% endif %}
+</script>
+{% endblock %}

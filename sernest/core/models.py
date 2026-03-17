@@ -34,6 +34,19 @@ class User(AbstractBaseUser):
         return self.is_admin
 
     email = models.EmailField(unique=True)
+    first_name = models.CharField(max_length=50, blank=True, default='')
+    last_name  = models.CharField(max_length=50, blank=True, default='')
+    phone      = models.CharField(max_length=15, blank=True, default='')
+    city       = models.CharField(max_length=100, blank=True, default='')
+    address    = models.CharField(max_length=255, blank=True, default='')
+    postal_code= models.CharField(max_length=10, blank=True, default='')
+    state      = models.CharField(max_length=100, blank=True, default='')
+    landmark   = models.CharField(max_length=255, blank=True, default='')
+    profile_photo = models.ImageField(
+    upload_to='user_photos/',
+    blank=True,
+    null=True
+)
     role_choice = (
         ('admin', 'Admin'),
         ('user', 'User'),

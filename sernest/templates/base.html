@@ -43,10 +43,48 @@
     <li><a href="{% url 'contact' %}" {% if request.resolver_match.url_name == 'contact' %}class="active"{% endif %}>Contact</a></li>
   </ul>
 
-  <div class="nav-cta">
-    <a href="{% url 'login' %}" class="btn-ghost">Sign In</a>
-    <a href="{% url 'register' %}" class="btn-primary">Get Started</a>
-  </div>
+<div class="nav-cta">
+    {% if user.is_authenticated %}
+        <!-- Profile dropdown when logged in -->
+        <div class="nav-profile-wrap" id="navProfileWrap">
+            <div class="nav-profile-btn" onclick="toggleProfileMenu()" id="navProfileBtn">
+                <div class="nav-avatar">
+                    {{ user.first_name|first|upper|default:"U" }}
+                </div>
+                <span class="nav-profile-name">{{ user.first_name|default:"My Account" }}</span>
+                <span style="font-size:0.7rem;opacity:0.6">▾</span>
+            </div>
+            <div class="nav-profile-dropdown" id="navProfileDropdown">
+                <div class="nav-profile-top">
+                    <div class="nav-profile-top-avatar">
+                        {{ user.first_name|first|upper|default:"U" }}
+                    </div>
+                    <div>
+                        <div class="nav-profile-top-name">{{ user.first_name }} {{ user.last_name }}</div>
+                        <div class="nav-profile-top-email">{{ user.email }}</div>
+                    </div>
+                </div>
+                <div class="nav-profile-divider"></div>
+                {% if user.role == 'admin' %}
+                    <a href="{% url 'core:admin_dashboard' %}" class="nav-profile-item">📊 Admin Dashboard</a>
+                {% elif user.role == 'service provider' %}
+                    <a href="{% url 'core:provider_dashboard' %}" class="nav-profile-item">🔧 My Dashboard</a>
+                    <a href="{% url 'core:provider_profile' %}" class="nav-profile-item">👤 My Profile</a>
+                {% else %}
+                    <a href="{% url 'core:user_dashboard' %}" class="nav-profile-item">📊 My Dashboard</a>
+                    <a href="{% url 'core:user_profile' %}" class="nav-profile-item">👤 My Profile</a>
+                {% endif %}
+                <a href="{% url 'core:categories' %}" class="nav-profile-item">🏠 Book a Service</a>
+                <div class="nav-profile-divider"></div>
+                <a href="{% url 'core:logout' %}" class="nav-profile-item nav-profile-logout">🚪 Sign Out</a>
+            </div>
+        </div>
+    {% else %}
+        <!-- Show Sign In + Get Started when NOT logged in -->
+        <a href="{% url 'login' %}" class="btn-ghost">Sign In</a>
+        <a href="{% url 'register' %}" class="btn-primary">Get Started</a>
+    {% endif %}
+</div>
 
   <button class="nav-mobile-toggle" aria-label="Menu">☰</button>
 </nav>

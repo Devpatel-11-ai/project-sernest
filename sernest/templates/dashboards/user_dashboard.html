@@ -1,0 +1,551 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}My Dashboard — SerNest{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+  --dash-bg: #07080f;
+  --dash-card: #0f1018;
+  --dash-card2: #13141d;
+  --dash-border: rgba(255,255,255,0.07);
+  --dash-border2: rgba(255,255,255,0.12);
+  --accent: #6c63ff;
+  --accent2: #a78bfa;
+  --accent-glow: rgba(108,99,255,0.2);
+  --text: #f0f0f8;
+  --text-muted: #6b6d82;
+  --green: #22c55e;
+  --yellow: #f59e0b;
+  --blue: #3b82f6;
+  --purple: #8b5cf6;
+  --red: #ef4444;
+}
+
+.dash-wrap { display:flex; min-height:calc(100vh - 70px); padding-top:70px; background:var(--dash-bg); }
+
+/* ── SIDEBAR ── */
+.dash-sidebar {
+  width:240px; position:fixed; top:70px; left:0; bottom:0;
+  background:#0b0c14; border-right:1px solid var(--dash-border);
+  display:flex; flex-direction:column; padding:24px 0; z-index:40;
+  overflow-y:auto;
+}
+.dash-user-mini {
+  display:flex; align-items:center; gap:12px;
+  padding:0 20px 24px; border-bottom:1px solid var(--dash-border);
+  margin-bottom:12px;
+}
+.dash-avatar {
+  width:42px; height:42px; border-radius:50%;
+  background:linear-gradient(135deg,#6c63ff,#a78bfa);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1rem; font-weight:700; color:#fff; flex-shrink:0;
+  overflow:hidden;
+}
+.dash-avatar img { width:100%; height:100%; object-fit:cover; }
+.dash-user-name { font-size:0.88rem; font-weight:600; color:var(--text); font-family:'Poppins',sans-serif; }
+.dash-user-role { font-size:0.72rem; color:var(--text-muted); font-family:'Poppins',sans-serif; }
+
+.dash-nav-section { padding:0 12px; margin-bottom:4px; }
+.dash-nav-label {
+  font-size:0.6rem; letter-spacing:.1em; text-transform:uppercase;
+  color:rgba(255,255,255,0.2); padding:8px 8px 6px; font-family:'Poppins',sans-serif;
+}
+.dash-nav-item {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 12px; border-radius:10px; cursor:pointer;
+  text-decoration:none; color:var(--text-muted); font-size:0.86rem;
+  font-family:'Poppins',sans-serif; font-weight:500;
+  transition:all .2s; margin-bottom:2px; border:1px solid transparent;
+}
+.dash-nav-item:hover { background:rgba(255,255,255,0.05); color:var(--text); text-decoration:none; }
+.dash-nav-item.active {
+  background:rgba(108,99,255,0.12); border-color:rgba(108,99,255,0.3);
+  color:var(--accent2);
+}
+.dash-nav-icon { font-size:1.1rem; width:22px; text-align:center; }
+.dash-nav-badge {
+  margin-left:auto; background:var(--accent); color:#fff;
+  font-size:0.65rem; font-weight:700; padding:2px 7px; border-radius:20px;
+}
+
+/* ── MAIN ── */
+.dash-main { margin-left:240px; flex:1; padding:32px 36px 60px; }
+.dash-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:32px; }
+.dash-greeting h1 { font-family:'Poppins',sans-serif; font-size:1.6rem; font-weight:800; color:var(--text); }
+.dash-greeting p { color:var(--text-muted); font-size:0.86rem; margin-top:3px; font-family:'Poppins',sans-serif; }
+.dash-topbar-actions { display:flex; gap:10px; align-items:center; }
+.dash-icon-btn {
+  width:38px; height:38px; border-radius:10px;
+  background:var(--dash-card); border:1px solid var(--dash-border);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; color:var(--text-muted); font-size:1.1rem;
+  transition:all .2s; text-decoration:none;
+}
+.dash-icon-btn:hover { border-color:var(--dash-border2); color:var(--text); }
+
+/* ── STAT CARDS ── */
+.stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:28px; }
+.stat-card {
+  background:var(--dash-card); border:1px solid var(--dash-border);
+  border-radius:14px; padding:20px; position:relative; overflow:hidden;
+  transition:transform .2s, border-color .2s;
+}
+.stat-card:hover { transform:translateY(-3px); border-color:var(--dash-border2); }
+.stat-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+}
+.stat-card.blue::before  { background:linear-gradient(90deg,#3b82f6,#60a5fa); }
+.stat-card.green::before { background:linear-gradient(90deg,#22c55e,#4ade80); }
+.stat-card.purple::before{ background:linear-gradient(90deg,#8b5cf6,#a78bfa); }
+.stat-card.amber::before { background:linear-gradient(90deg,#f59e0b,#fcd34d); }
+.stat-icon { font-size:1.8rem; margin-bottom:10px; }
+.stat-num {
+  font-family:'Poppins',sans-serif; font-size:1.9rem; font-weight:800;
+  color:var(--text); line-height:1;
+}
+.stat-label { color:var(--text-muted); font-size:0.78rem; margin-top:5px; font-family:'Poppins',sans-serif; }
+.stat-sub { font-size:0.72rem; color:var(--text-muted); margin-top:4px; font-family:'Poppins',sans-serif; }
+
+/* ── SECTION HEADERS ── */
+.sect-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.sect-title { font-family:'Poppins',sans-serif; font-size:1rem; font-weight:700; color:var(--text); }
+.sect-link { font-size:0.8rem; color:var(--accent2); text-decoration:none; font-family:'Poppins',sans-serif; }
+
+/* ── BOOKINGS TABLE ── */
+.bk-table-wrap {
+  background:var(--dash-card); border:1px solid var(--dash-border);
+  border-radius:14px; overflow:hidden; margin-bottom:28px;
+}
+.bk-table { width:100%; border-collapse:collapse; }
+.bk-table th {
+  padding:13px 18px; text-align:left; font-size:0.75rem;
+  font-weight:600; color:var(--text-muted); text-transform:uppercase;
+  letter-spacing:.06em; font-family:'Poppins',sans-serif;
+  border-bottom:1px solid var(--dash-border); background:var(--dash-card2);
+}
+.bk-table td {
+  padding:14px 18px; font-size:0.85rem; font-family:'Poppins',sans-serif;
+  color:var(--text); border-bottom:1px solid var(--dash-border);
+}
+.bk-table tr:last-child td { border-bottom:none; }
+.bk-table tr:hover td { background:rgba(255,255,255,0.02); }
+.status-badge {
+  padding:4px 10px; border-radius:20px; font-size:0.72rem;
+  font-weight:600; font-family:'Poppins',sans-serif; white-space:nowrap;
+}
+.s-pending  { background:rgba(245,158,11,0.15); color:#fcd34d; border:1px solid rgba(245,158,11,0.3); }
+.s-confirmed{ background:rgba(59,130,246,0.15); color:#93c5fd; border:1px solid rgba(59,130,246,0.3); }
+.s-onway    { background:rgba(139,92,246,0.15); color:#c4b5fd; border:1px solid rgba(139,92,246,0.3); }
+.s-completed{ background:rgba(34,197,94,0.15);  color:#4ade80; border:1px solid rgba(34,197,94,0.3); }
+.s-cancelled{ background:rgba(239,68,68,0.15);  color:#f87171; border:1px solid rgba(239,68,68,0.3); }
+
+/* ── 2-COL GRID ── */
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:28px; }
+
+/* ── PROVIDER CARDS ── */
+.prov-fav-card {
+  display:flex; align-items:center; gap:14px;
+  background:var(--dash-card2); border:1px solid var(--dash-border);
+  border-radius:12px; padding:14px 16px; margin-bottom:10px;
+  transition:border-color .2s;
+}
+.prov-fav-card:hover { border-color:var(--dash-border2); }
+.prov-fav-avatar {
+  width:46px; height:46px; border-radius:50%; flex-shrink:0;
+  overflow:hidden; background:#1c1d2e;
+  display:flex; align-items:center; justify-content:center; font-size:1.3rem;
+}
+.prov-fav-avatar img { width:100%; height:100%; object-fit:cover; }
+.prov-fav-name { font-size:0.9rem; font-weight:600; color:var(--text); font-family:'Poppins',sans-serif; }
+.prov-fav-svc  { font-size:0.76rem; color:var(--accent2); font-family:'Poppins',sans-serif; margin-top:2px; }
+.prov-fav-meta { font-size:0.73rem; color:var(--text-muted); font-family:'Poppins',sans-serif; margin-top:2px; }
+.prov-fav-actions { margin-left:auto; display:flex; gap:7px; }
+.mini-btn {
+  padding:6px 12px; border-radius:8px; font-size:0.75rem;
+  font-weight:600; cursor:pointer; font-family:'Poppins',sans-serif;
+  border:none; transition:all .2s;
+}
+.mini-btn-primary { background:var(--accent); color:#fff; }
+.mini-btn-primary:hover { background:var(--accent2); }
+.mini-btn-ghost { background:rgba(255,255,255,0.06); color:var(--text-muted); border:1px solid var(--dash-border); }
+.mini-btn-ghost:hover { color:var(--red); border-color:rgba(239,68,68,0.3); }
+
+/* ── AI PANEL ── */
+.ai-panel {
+  background:var(--dash-card); border:1px solid rgba(108,99,255,0.3);
+  border-radius:14px; padding:24px; margin-bottom:28px;
+  position:relative; overflow:hidden;
+}
+.ai-panel::before {
+  content:''; position:absolute; top:-60px; right:-60px;
+  width:200px; height:200px; border-radius:50%;
+  background:radial-gradient(circle,rgba(108,99,255,0.12),transparent 70%);
+}
+.ai-header { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+.ai-logo {
+  width:40px; height:40px; border-radius:10px;
+  background:linear-gradient(135deg,#6c63ff,#a78bfa);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.2rem;
+}
+.ai-title { font-family:'Poppins',sans-serif; font-size:0.95rem; font-weight:700; color:var(--text); }
+.ai-sub   { font-size:0.75rem; color:var(--text-muted); font-family:'Poppins',sans-serif; margin-top:1px; }
+
+.ai-quick-chips { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+.ai-chip {
+  padding:6px 13px; border-radius:20px; font-size:0.77rem;
+  background:rgba(108,99,255,0.1); border:1px solid rgba(108,99,255,0.25);
+  color:var(--accent2); cursor:pointer; font-family:'Poppins',sans-serif;
+  transition:all .2s;
+}
+.ai-chip:hover { background:rgba(108,99,255,0.2); border-color:rgba(108,99,255,0.5); }
+
+.ai-input-row { display:flex; gap:10px; margin-bottom:14px; }
+.ai-input {
+  flex:1; background:#0b0c14; border:1px solid var(--dash-border);
+  color:var(--text); padding:11px 14px; border-radius:10px;
+  font-size:0.87rem; font-family:'Poppins',sans-serif; outline:none;
+  transition:border-color .2s;
+}
+.ai-input:focus { border-color:var(--accent); }
+.ai-input::placeholder { color:rgba(255,255,255,0.2); }
+.ai-send-btn {
+  padding:11px 18px; background:var(--accent); border:none; color:#fff;
+  border-radius:10px; font-size:0.87rem; font-weight:600;
+  cursor:pointer; font-family:'Poppins',sans-serif; transition:all .2s;
+}
+.ai-send-btn:hover { background:var(--accent2); box-shadow:0 0 20px var(--accent-glow); }
+
+.ai-response {
+  background:#0b0c14; border:1px solid var(--dash-border);
+  border-radius:10px; padding:14px 16px; display:none;
+}
+.ai-response.show { display:block; animation:fadeIn .3s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+.ai-response-title { font-size:0.8rem; color:var(--accent2); font-weight:600; font-family:'Poppins',sans-serif; margin-bottom:8px; }
+.ai-response-body { font-size:0.84rem; color:var(--text); font-family:'Poppins',sans-serif; line-height:1.7; }
+.ai-thinking { display:none; font-size:0.82rem; color:var(--text-muted); font-family:'Poppins',sans-serif; padding:8px 0; }
+.ai-thinking.show { display:block; }
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align:center; padding:40px 20px; color:var(--text-muted); font-family:'Poppins',sans-serif; }
+.empty-state .ei { font-size:2.5rem; margin-bottom:10px; }
+.empty-state p { font-size:0.86rem; }
+
+@media(max-width:1100px) { .stats-grid { grid-template-columns:repeat(2,1fr); } .two-col { grid-template-columns:1fr; } }
+@media(max-width:768px)  { .dash-sidebar { display:none; } .dash-main { margin-left:0; padding:20px 16px 50px; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dash-wrap">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="dash-sidebar">
+    <div class="dash-user-mini">
+      <div class="dash-avatar">
+        {% if request.user.first_name %}{{ request.user.first_name|first|upper }}{% else %}U{% endif %}
+      </div>
+      <div>
+        <div class="dash-user-name">{{ request.user.first_name|default:"User" }} {{ request.user.last_name }}</div>
+        <div class="dash-user-role">Customer</div>
+      </div>
+    </div>
+
+    <div class="dash-nav-section">
+      <div class="dash-nav-label">Main</div>
+      <a href="{% url 'core:user_dashboard' %}" class="dash-nav-item active">
+        <span class="dash-nav-icon">📊</span> Dashboard
+      </a>
+      <a href="#bookings" class="dash-nav-item">
+        <span class="dash-nav-icon">📅</span> My Bookings
+        <span class="dash-nav-badge">{{ bookings|length|default:"0" }}</span>
+      </a>
+      <a href="#favorites" class="dash-nav-item">
+        <span class="dash-nav-icon">❤️</span> Favorites
+      </a>
+      <a href="#ai" class="dash-nav-item">
+        <span class="dash-nav-icon">🤖</span> AI Assistant
+      </a>
+    </div>
+
+    <div class="dash-nav-section" style="margin-top:8px">
+      <div class="dash-nav-label">Account</div>
+      <a href="{% url 'core:user_profile' %}" class="dash-nav-item">
+        <span class="dash-nav-icon">👤</span> My Profile
+      </a>
+      <a href="{% url 'categories' %}" class="dash-nav-item">
+        <span class="dash-nav-icon">🏠</span> Book a Service
+      </a>
+      <a href="{% url 'core:logout' %}" class="dash-nav-item" style="margin-top:auto">
+        <span class="dash-nav-icon">🚪</span> Sign Out
+      </a>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══ -->
+  <main class="dash-main">
+
+    <!-- Topbar -->
+    <div class="dash-topbar">
+      <div class="dash-greeting">
+        <h1>Welcome back, {{ request.user.first_name|default:"there" }} 👋</h1>
+        <p>Find and manage your services quickly.</p>
+      </div>
+      <div class="dash-topbar-actions">
+        <a href="{% url 'categories' %}" class="dash-icon-btn" title="Book Service">➕</a>
+        <a href="{% url 'core:user_profile' %}" class="dash-icon-btn" title="Profile">👤</a>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card blue">
+        <div class="stat-icon">📅</div>
+        <div class="stat-num">{{ active_bookings|default:"0" }}</div>
+        <div class="stat-label">Active Bookings</div>
+        <div class="stat-sub">Services currently in progress</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon">✅</div>
+        <div class="stat-num">{{ completed_bookings|default:"0" }}</div>
+        <div class="stat-label">Completed Jobs</div>
+        <div class="stat-sub">Successfully finished services</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-icon">❤️</div>
+        <div class="stat-num">{{ saved_providers|default:"0" }}</div>
+        <div class="stat-label">Saved Providers</div>
+        <div class="stat-sub">Trusted professionals saved</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-icon">💰</div>
+        <div class="stat-num">₹{{ wallet_balance|default:"0" }}</div>
+        <div class="stat-label">Wallet Balance</div>
+        <div class="stat-sub">Available credits</div>
+      </div>
+    </div>
+
+    <!-- AI ASSISTANT -->
+    <div id="ai" class="ai-panel">
+      <div class="ai-header">
+        <div class="ai-logo">🤖</div>
+        <div>
+          <div class="ai-title">SerNest AI Assistant</div>
+          <div class="ai-sub">Get instant help for common service issues</div>
+        </div>
+      </div>
+
+      <div class="ai-quick-chips">
+        <span class="ai-chip" onclick="askAI('Why is my AC leaking water?')">❄️ AC leaking water?</span>
+        <span class="ai-chip" onclick="askAI('Estimated cost for pipe repair?')">🔧 Pipe repair cost?</span>
+        <span class="ai-chip" onclick="askAI('How long does geyser installation take?')">⏱️ Geyser install time?</span>
+        <span class="ai-chip" onclick="askAI('My washing machine is not spinning')">🌀 Washing machine issue?</span>
+        <span class="ai-chip" onclick="askAI('How to fix an electrical short circuit?')">⚡ Electrical issue?</span>
+      </div>
+
+      <div class="ai-input-row">
+        <input class="ai-input" id="aiInput" type="text" placeholder="Ask your service question… e.g. Why is my fan making noise?">
+        <button class="ai-send-btn" onclick="sendAI()">Ask AI →</button>
+      </div>
+      <div class="ai-thinking" id="aiThinking">🤔 Analyzing your question…</div>
+      <div class="ai-response" id="aiResponse">
+        <div class="ai-response-title">🤖 AI Response</div>
+        <div class="ai-response-body" id="aiResponseBody"></div>
+      </div>
+    </div>
+
+    <!-- Bookings -->
+    <div id="bookings">
+      <div class="sect-head">
+        <div class="sect-title">📅 My Bookings</div>
+        <a href="#" class="sect-link">View All →</a>
+      </div>
+      <div class="bk-table-wrap">
+        {% if bookings %}
+        <table class="bk-table">
+          <thead>
+            <tr>
+              <th>Service</th>
+              <th>Provider</th>
+              <th>Date</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for b in bookings %}
+            <tr>
+              <td>{{ b.service }}</td>
+              <td>{{ b.provider }}</td>
+              <td>{{ b.date }}</td>
+              <td>₹{{ b.amount }}</td>
+              <td>
+                <span class="status-badge
+                  {% if b.status == 'Pending' %}s-pending
+                  {% elif b.status == 'Confirmed' %}s-confirmed
+                  {% elif b.status == 'On the Way' %}s-onway
+                  {% elif b.status == 'Completed' %}s-completed
+                  {% else %}s-cancelled{% endif %}">
+                  {% if b.status == 'Pending' %}🟡
+                  {% elif b.status == 'Confirmed' %}🔵
+                  {% elif b.status == 'On the Way' %}🟣
+                  {% elif b.status == 'Completed' %}🟢
+                  {% else %}🔴{% endif %}
+                  {{ b.status }}
+                </span>
+              </td>
+              <td><button class="mini-btn mini-btn-ghost">Details</button></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+          <div class="ei">📅</div>
+          <p>No bookings yet. <a href="{% url 'categories' %}" style="color:var(--accent2)">Book your first service →</a></p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Favorites + Quick Book -->
+    <div class="two-col" id="favorites">
+      <div>
+        <div class="sect-head">
+          <div class="sect-title">❤️ Favorite Providers</div>
+          <a href="#" class="sect-link">View All →</a>
+        </div>
+        {% if favorite_providers %}
+          {% for fp in favorite_providers %}
+          <div class="prov-fav-card">
+            <div class="prov-fav-avatar">
+              {% if fp.profile_image %}<img src="{{ fp.profile_image.url }}" alt="">{% else %}👷{% endif %}
+            </div>
+            <div>
+              <div class="prov-fav-name">{{ fp.name }}</div>
+              <div class="prov-fav-svc">{{ fp.category.name }}</div>
+              <div class="prov-fav-meta">⭐ {{ fp.rating }} · {{ fp.experience }} yrs exp</div>
+            </div>
+            <div class="prov-fav-actions">
+              <button class="mini-btn mini-btn-primary">Book Again</button>
+              <button class="mini-btn mini-btn-ghost">Remove</button>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+        <div class="empty-state" style="background:var(--dash-card);border:1px solid var(--dash-border);border-radius:14px">
+          <div class="ei">❤️</div>
+          <p>No saved providers yet.</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <div>
+        <div class="sect-head">
+          <div class="sect-title">⚡ Quick Book</div>
+        </div>
+        <div style="background:var(--dash-card);border:1px solid var(--dash-border);border-radius:14px;padding:20px">
+          <p style="font-size:0.84rem;color:var(--text-muted);font-family:'Poppins',sans-serif;margin-bottom:16px">
+            Browse services and hire a professional in minutes.
+          </p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            {% for cat in quick_categories %}
+            <a href="{% url 'core:category_providers' cat.id %}"
+               style="display:flex;align-items:center;gap:9px;padding:12px;background:var(--dash-card2);border:1px solid var(--dash-border);border-radius:10px;text-decoration:none;color:var(--text);font-size:0.83rem;font-family:'Poppins',sans-serif;transition:border-color .2s"
+               onmouseover="this.style.borderColor='rgba(108,99,255,0.4)'"
+               onmouseout="this.style.borderColor='var(--dash-border)'">
+              <span style="font-size:1.2rem">{{ cat.icon }}</span>{{ cat.name }}
+            </a>
+            {% empty %}
+            <a href="{% url 'categories' %}" style="grid-column:1/-1;display:block;padding:14px;background:var(--accent);border-radius:10px;text-align:center;text-decoration:none;color:#fff;font-size:0.87rem;font-weight:600;font-family:'Poppins',sans-serif">
+              Browse All Services →
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── AI ASSISTANT ──
+const AI_RESPONSES = {
+  'ac': {
+    title: 'AC Leaking Water — Possible Causes',
+    body: `Possible causes:\n• Blocked or clogged drain pipe\n• Dirty/frozen evaporator coil\n• Incorrect AC installation angle\n• Low refrigerant level\n\nEstimated repair cost: ₹500 – ₹1,500\nRecommended action: Book an AC technician for diagnosis.`
+  },
+  'pipe': {
+    title: 'Pipe Repair — Cost Estimate',
+    body: `Estimated costs:\n• Minor leak fix: ₹200 – ₹500\n• Pipe replacement (per meter): ₹300 – ₹800\n• Burst pipe emergency: ₹1,000 – ₹3,000\n\nTime required: 1–3 hours\nRecommendation: Turn off main water supply immediately.`
+  },
+  'geyser': {
+    title: 'Geyser Installation — Time & Cost',
+    body: `Installation time: 2–4 hours\n\nEstimated costs:\n• Standard installation: ₹500 – ₹1,200\n• With new pipes: ₹1,500 – ₹2,500\n\nTips:\n• Ensure proper earthing\n• Use ISI marked geyser\n• Get annual servicing done`
+  },
+  'washing': {
+    title: 'Washing Machine Not Spinning',
+    body: `Possible causes:\n• Unbalanced load inside drum\n• Worn or broken drive belt\n• Faulty motor or capacitor\n• Lid/door switch not engaging\n\nEstimated repair: ₹400 – ₹2,000\nDIY check: Redistribute clothes evenly and retry.`
+  },
+  'electrical': {
+    title: 'Electrical Short Circuit — Safety First',
+    body: `Immediate steps:\n• Turn off main MCB immediately\n• Do NOT touch bare wires\n• Ventilate the area\n\nPossible causes:\n• Overloaded circuit\n• Damaged wire insulation\n• Water contact with wiring\n\nEstimated fix: ₹500 – ₹3,000\n⚠️ Always hire a certified electrician.`
+  },
+  'fan': {
+    title: 'Fan Making Noise — Diagnosis',
+    body: `Possible causes:\n• Loose blade screws\n• Worn capacitor\n• Bent blade\n• Dry bearings needing lubrication\n\nDIY fix: Tighten screws and apply oil to bearings.\nIf noise persists, cost to repair: ₹200 – ₹600`
+  }
+};
+
+function getAIResponse(question) {
+  const q = question.toLowerCase();
+  if (q.includes('ac') || q.includes('leak') || q.includes('air condition')) return AI_RESPONSES.ac;
+  if (q.includes('pipe') || q.includes('plumb') || q.includes('water')) return AI_RESPONSES.pipe;
+  if (q.includes('geyser') || q.includes('heater') || q.includes('install')) return AI_RESPONSES.geyser;
+  if (q.includes('wash') || q.includes('spin') || q.includes('machine')) return AI_RESPONSES.washing;
+  if (q.includes('electric') || q.includes('circuit') || q.includes('short')) return AI_RESPONSES.electrical;
+  if (q.includes('fan') || q.includes('noise') || q.includes('sound')) return AI_RESPONSES.fan;
+  return {
+    title: 'General Service Advice',
+    body: `For your query: "${question}"\n\nOur AI suggests:\n• Describe the issue in more detail for better diagnosis\n• Check if the appliance is under warranty\n• Book a professional inspection from SerNest\n\nEstimated diagnosis cost: ₹200 – ₹500`
+  };
+}
+
+function askAI(question) {
+  document.getElementById('aiInput').value = question;
+  sendAI();
+}
+
+function sendAI() {
+  const input = document.getElementById('aiInput');
+  const q = input.value.trim();
+  if (!q) return;
+
+  const thinking = document.getElementById('aiThinking');
+  const response = document.getElementById('aiResponse');
+  const body     = document.getElementById('aiResponseBody');
+
+  thinking.classList.add('show');
+  response.classList.remove('show');
+
+  setTimeout(() => {
+    thinking.classList.remove('show');
+    const r = getAIResponse(q);
+    body.innerHTML = '<strong>' + r.title + '</strong><br><br>' +
+      r.body.replace(/\n/g, '<br>').replace(/•/g, '&nbsp;&nbsp;•');
+    response.classList.add('show');
+  }, 1000);
+}
+
+document.getElementById('aiInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendAI();
+});
+</script>
+{% endblock %}

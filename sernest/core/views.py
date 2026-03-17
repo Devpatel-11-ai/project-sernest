@@ -58,7 +58,7 @@ def register(request):
 # ══════════════════════════════════════
 def UserLoginView(request):
     if request.user.is_authenticated:
-        return redirect('home')
+        return redirect('core:role_redirect')
 
     if request.method == 'POST':
         email    = request.POST.get('email', '').strip().lower()
@@ -268,3 +268,166 @@ SerNest Team""",
             messages.error(request, '❌ Message failed to send. Please try again.')
 
     return render(request, 'contact.html')
+
+
+# ═══════════════════════════════════════════════════════
+#  ADD THESE FUNCTIONS TO YOUR EXISTING core/views.py
+#  Also add:  from django.contrib.auth.decorators import login_required
+# ═══════════════════════════════════════════════════════
+
+from django.contrib.auth.decorators import login_required
+
+
+# ──────────────────────────────────────────
+#  USER DASHBOARD
+# ──────────────────────────────────────────
+@login_required
+def user_dashboard(request):
+    from .models import Category
+    quick_categories = Category.objects.all()[:8]
+
+    context = {
+        'active_bookings':    0,   # Replace with Booking.objects.filter(user=request.user, status='active').count()
+        'completed_bookings': 0,   # Replace with Booking.objects.filter(user=request.user, status='completed').count()
+        'saved_providers':    0,   # Replace with FavoriteProvider.objects.filter(user=request.user).count()
+        'wallet_balance':     0,   # Replace with request.user.wallet_balance if you add that field
+        'bookings':           [],  # Replace with Booking.objects.filter(user=request.user).order_by('-date')[:10]
+        'favorite_providers': [],  # Replace with FavoriteProvider.objects.filter(user=request.user)
+        'quick_categories':   quick_categories,
+    }
+    return render(request, 'dashboards/user_dashboard.html', context)
+
+
+# ──────────────────────────────────────────
+#  PROVIDER DASHBOARD
+# ──────────────────────────────────────────
+@login_required
+def provider_dashboard(request):
+    from .models import ServiceProvider
+
+    # Get the provider profile for logged in user
+    try:
+        provider = ServiceProvider.objects.get(email=request.user.email)
+    except ServiceProvider.DoesNotExist:
+        provider = None
+
+    context = {
+        'provider':         provider,
+        'todays_bookings':  0,   # Replace with actual Booking queryset
+        'pending_requests': [],  # Replace with Booking.objects.filter(provider=provider, status='pending')
+        'completed_jobs':   0,
+        'total_earnings':   0,
+        'today_earnings':   0,
+        'week_earnings':    0,
+        'month_earnings':   0,
+        # Weekly chart data (replace with real aggregation)
+        'mon_earnings': 1200,
+        'tue_earnings': 2100,
+        'wed_earnings': 800,
+        'thu_earnings': 1800,
+        'fri_earnings': 2500,
+        'sat_earnings': 3200,
+        'sun_earnings': 900,
+    }
+    return render(request, 'dashboards/provider_dashboard.html', context)
+
+
+# ──────────────────────────────────────────
+#  ADMIN DASHBOARD
+# ──────────────────────────────────────────
+@login_required
+def admin_dashboard(request):
+    # Only allow admin role
+    if request.user.role != 'admin':
+        from django.shortcuts import redirect
+        return redirect('home')
+
+    from .models import User, ServiceProvider
+
+    context = {
+        'total_users':     User.objects.filter(role='user').count(),
+        'total_providers': ServiceProvider.objects.count(),
+        'total_bookings':  0,      # Replace with Booking.objects.count()
+        'total_revenue':   0,      # Replace with real revenue sum
+        'all_users':       User.objects.filter(role='user').order_by('-created_at')[:20],
+        'all_providers':   ServiceProvider.objects.select_related('category').order_by('-id')[:20],
+        'all_bookings':    [],     # Replace with Booking.objects.all().order_by('-date')[:20]
+    }
+    return render(request, 'dashboards/admin_dashboard.html', context)
+
+
+# ──────────────────────────────────────────
+#  USER PROFILE
+# ──────────────────────────────────────────
+@login_required
+def user_profile(request):
+    if request.method == 'POST':
+        user = request.user
+        user.first_name  = request.POST.get('first_name', '')
+        user.last_name   = request.POST.get('last_name', '')
+        user.phone       = request.POST.get('phone', '')
+        user.city        = request.POST.get('city', '')
+        user.address     = request.POST.get('address', '')
+        user.postal_code = request.POST.get('postal_code', '')
+        user.state       = request.POST.get('state', '')
+        user.landmark    = request.POST.get('landmark', '')
+
+        # Handle profile photo upload
+        if 'profile_photo' in request.FILES:
+            user.profile_photo = request.FILES['profile_photo']
+
+        user.save()
+        messages.success(request, '✅ Profile updated successfully!')
+        return redirect('core:user_profile')
+
+    return render(request, 'profiles/user_profile.html', {'user': request.user})
+
+
+# ──────────────────────────────────────────
+#  PROVIDER PROFILE
+# ──────────────────────────────────────────
+@login_required
+def provider_profile(request):
+    from .models import ServiceProvider, Category
+
+    try:
+        provider = ServiceProvider.objects.get(email=request.user.email)
+    except ServiceProvider.DoesNotExist:
+        provider = None
+
+    categories = Category.objects.all()
+
+    if request.method == 'POST' and provider:
+        provider.name       = request.POST.get('name', provider.name)
+        provider.city       = request.POST.get('city', provider.city)
+        provider.experience = request.POST.get('experience', provider.experience)
+        provider.mode       = request.POST.get('mode', provider.mode)
+        provider.available  = request.POST.get('available') == 'on'
+        if 'profile_image' in request.FILES:
+            provider.profile_image = request.FILES['profile_image']
+        provider.save()
+        from django.contrib import messages
+        messages.success(request, '✅ Profile updated successfully!')
+        return redirect('core:provider_profile')
+
+    return render(request, 'profiles/provider_profile.html', {
+    'provider':   provider,
+    'categories': categories,
+    'days_list':  ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    'rating_levels': ['5', '4', '3', '2', '1'],
+})
+
+
+# ──────────────────────────────────────────
+#  REDIRECT AFTER LOGIN (based on role)
+# ──────────────────────────────────────────
+def role_redirect(request):
+    if not request.user.is_authenticated:
+        return redirect('core:login')
+    role = request.user.role
+    if role == 'admin':
+        return redirect('core:admin_dashboard')
+    elif role == 'service provider':
+        return redirect('core:provider_dashboard')
+    else:
+        return redirect('core:user_dashboard')

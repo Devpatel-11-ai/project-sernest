@@ -142,3 +142,5 @@ EMAIL_HOST_PASSWORD = 'zoxn autq jcrz lliv'
 import os
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'

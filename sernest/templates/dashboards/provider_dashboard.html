@@ -1,0 +1,448 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Provider Dashboard — SerNest{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+  --dash-bg:#07080f; --dash-card:#0f1018; --dash-card2:#13141d;
+  --dash-border:rgba(255,255,255,0.07); --dash-border2:rgba(255,255,255,0.14);
+  --accent:#6c63ff; --accent2:#a78bfa; --text:#f0f0f8; --text-muted:#6b6d82;
+}
+.dash-wrap { display:flex; min-height:calc(100vh - 70px); padding-top:70px; background:var(--dash-bg); }
+.dash-sidebar {
+  width:240px; position:fixed; top:70px; left:0; bottom:0;
+  background:#0b0c14; border-right:1px solid var(--dash-border);
+  display:flex; flex-direction:column; padding:24px 0; z-index:40; overflow-y:auto;
+}
+.dash-user-mini { display:flex;align-items:center;gap:12px;padding:0 20px 24px;border-bottom:1px solid var(--dash-border);margin-bottom:12px; }
+.dash-avatar { width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#059669,#34d399);display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;color:#fff;flex-shrink:0; }
+.dash-user-name { font-size:0.88rem;font-weight:600;color:var(--text);font-family:'Poppins',sans-serif; }
+.dash-user-role { font-size:0.72rem;color:#34d399;font-family:'Poppins',sans-serif; }
+.dash-nav-section { padding:0 12px; margin-bottom:4px; }
+.dash-nav-label { font-size:0.6rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.2);padding:8px 8px 6px;font-family:'Poppins',sans-serif; }
+.dash-nav-item { display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;text-decoration:none;color:var(--text-muted);font-size:0.86rem;font-family:'Poppins',sans-serif;font-weight:500;transition:all .2s;margin-bottom:2px;border:1px solid transparent; }
+.dash-nav-item:hover { background:rgba(255,255,255,0.05);color:var(--text);text-decoration:none; }
+.dash-nav-item.active { background:rgba(5,150,105,0.12);border-color:rgba(5,150,105,0.3);color:#34d399; }
+.dash-nav-icon { font-size:1.1rem;width:22px;text-align:center; }
+.dash-nav-badge { margin-left:auto;background:#ef4444;color:#fff;font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:20px; }
+
+.dash-main { margin-left:240px;flex:1;padding:32px 36px 60px; }
+.dash-topbar { display:flex;align-items:center;justify-content:space-between;margin-bottom:32px; }
+.dash-greeting h1 { font-family:'Poppins',sans-serif;font-size:1.6rem;font-weight:800;color:var(--text); }
+.dash-greeting p { color:var(--text-muted);font-size:0.86rem;margin-top:3px;font-family:'Poppins',sans-serif; }
+
+/* Avail toggle */
+.avail-toggle { display:flex;align-items:center;gap:10px;background:var(--dash-card);border:1px solid var(--dash-border);border-radius:10px;padding:10px 16px; }
+.toggle-label { font-size:0.83rem;font-family:'Poppins',sans-serif;color:var(--text); }
+.toggle-switch { position:relative;width:44px;height:24px; }
+.toggle-switch input { opacity:0;width:0;height:0; }
+.toggle-slider { position:absolute;inset:0;background:#333;border-radius:24px;cursor:pointer;transition:.3s; }
+.toggle-slider::before { content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s; }
+.toggle-switch input:checked + .toggle-slider { background:#22c55e; }
+.toggle-switch input:checked + .toggle-slider::before { transform:translateX(20px); }
+
+/* Stats */
+.stats-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px; }
+.stat-card { background:var(--dash-card);border:1px solid var(--dash-border);border-radius:14px;padding:20px;position:relative;overflow:hidden;transition:transform .2s,border-color .2s; }
+.stat-card:hover { transform:translateY(-3px);border-color:var(--dash-border2); }
+.stat-card::before { content:'';position:absolute;top:0;left:0;right:0;height:3px; }
+.stat-card.teal::before   { background:linear-gradient(90deg,#0d9488,#2dd4bf); }
+.stat-card.orange::before { background:linear-gradient(90deg,#ea580c,#fb923c); }
+.stat-card.green::before  { background:linear-gradient(90deg,#16a34a,#4ade80); }
+.stat-card.indigo::before { background:linear-gradient(90deg,#4f46e5,#818cf8); }
+.stat-icon { font-size:1.8rem;margin-bottom:10px; }
+.stat-num { font-family:'Poppins',sans-serif;font-size:1.9rem;font-weight:800;color:var(--text);line-height:1; }
+.stat-label { color:var(--text-muted);font-size:0.78rem;margin-top:5px;font-family:'Poppins',sans-serif; }
+
+/* Section */
+.sect-head { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px; }
+.sect-title { font-family:'Poppins',sans-serif;font-size:1rem;font-weight:700;color:var(--text); }
+.sect-link { font-size:0.8rem;color:var(--accent2);text-decoration:none;font-family:'Poppins',sans-serif; }
+
+/* Request cards */
+.req-card {
+  background:var(--dash-card);border:1px solid var(--dash-border);
+  border-radius:12px;padding:18px;margin-bottom:12px;
+  display:flex;align-items:center;gap:16px;
+  transition:border-color .2s;
+}
+.req-card:hover { border-color:var(--dash-border2); }
+.req-avatar { width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#818cf8);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff;font-weight:700;flex-shrink:0;font-family:'Poppins',sans-serif; }
+.req-info { flex:1; }
+.req-customer { font-size:0.9rem;font-weight:600;color:var(--text);font-family:'Poppins',sans-serif; }
+.req-service { font-size:0.78rem;color:var(--accent2);font-family:'Poppins',sans-serif;margin-top:2px; }
+.req-meta { font-size:0.73rem;color:var(--text-muted);font-family:'Poppins',sans-serif;margin-top:3px; }
+.req-actions { display:flex;gap:8px; }
+.req-btn { padding:7px 14px;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;border:none;transition:all .2s; }
+.req-btn-accept { background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid rgba(34,197,94,0.3); }
+.req-btn-accept:hover { background:rgba(34,197,94,0.25); }
+.req-btn-reject { background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(239,68,68,0.25); }
+.req-btn-reject:hover { background:rgba(239,68,68,0.2); }
+.req-btn-view { background:rgba(255,255,255,0.06);color:var(--text-muted);border:1px solid var(--dash-border); }
+.req-btn-view:hover { color:var(--text);border-color:var(--dash-border2); }
+.status-badge { padding:4px 10px;border-radius:20px;font-size:0.72rem;font-weight:600;font-family:'Poppins',sans-serif; }
+.s-pending   { background:rgba(245,158,11,0.15);color:#fcd34d;border:1px solid rgba(245,158,11,0.3); }
+.s-completed { background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid rgba(34,197,94,0.3); }
+
+/* Earnings */
+.earn-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px; }
+.earn-card { background:var(--dash-card2);border:1px solid var(--dash-border);border-radius:12px;padding:16px;text-align:center; }
+.earn-amount { font-family:'Poppins',sans-serif;font-size:1.5rem;font-weight:800;color:#4ade80;margin-bottom:4px; }
+.earn-label  { font-size:0.76rem;color:var(--text-muted);font-family:'Poppins',sans-serif; }
+
+/* Bar chart */
+.bar-chart { display:flex;align-items:flex-end;gap:8px;height:120px;padding:10px 0; }
+.bar-col { display:flex;flex-direction:column;align-items:center;flex:1;gap:5px; }
+.bar { width:100%;border-radius:4px 4px 0 0;background:linear-gradient(180deg,#6c63ff,#4f46e5);transition:height .5s ease;min-height:4px; }
+.bar-lbl { font-size:0.68rem;color:var(--text-muted);font-family:'Poppins',sans-serif; }
+.bar-val  { font-size:0.7rem;color:var(--text);font-family:'Poppins',sans-serif;font-weight:600; }
+
+.empty-state { text-align:center;padding:40px 20px;color:var(--text-muted);font-family:'Poppins',sans-serif; }
+.empty-state .ei { font-size:2.5rem;margin-bottom:10px; }
+
+@media(max-width:1100px) { .stats-grid { grid-template-columns:repeat(2,1fr); } }
+@media(max-width:768px) { .dash-sidebar { display:none; } .dash-main { margin-left:0; padding:20px 16px; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dash-wrap">
+
+  <!-- Sidebar -->
+  <aside class="dash-sidebar">
+    <div class="dash-user-mini">
+      <div class="dash-avatar">
+        {% if request.user.first_name %}{{ request.user.first_name|first|upper }}{% else %}P{% endif %}
+      </div>
+      <div>
+        <div class="dash-user-name">{{ request.user.first_name|default:"Provider" }}</div>
+        <div class="dash-user-role">Service Provider</div>
+      </div>
+    </div>
+    <div class="dash-nav-section">
+      <div class="dash-nav-label">Main</div>
+      <a href="{% url 'core:provider_dashboard' %}" class="dash-nav-item active"><span class="dash-nav-icon">📊</span> Dashboard</a>
+      <a href="#requests" class="dash-nav-item"><span class="dash-nav-icon">📋</span> Requests <span class="dash-nav-badge">{{ pending_requests|length|default:"0" }}</span></a>
+      <a href="#earnings" class="dash-nav-item"><span class="dash-nav-icon">💰</span> Earnings</a>
+      <a href="{% url 'core:provider_profile' %}" class="dash-nav-item"><span class="dash-nav-icon">👤</span> My Profile</a>
+      <a href="{% url 'core:logout' %}" class="dash-nav-item"><span class="dash-nav-icon">🚪</span> Sign Out</a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="dash-main">
+    <div class="dash-topbar">
+      <div class="dash-greeting">
+        <h1>Provider Dashboard 🔧</h1>
+        <p>Manage your service requests and earnings.</p>
+      </div>
+      <div class="avail-toggle">
+        <span class="toggle-label">Available</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="availToggle" {% if provider.available %}checked{% endif %} onchange="toggleAvailability(this)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card teal">
+        <div class="stat-icon">📥</div>
+        <div class="stat-num">{{ todays_bookings|default:"0" }}</div>
+        <div class="stat-label">Today's Bookings</div>
+      </div>
+      <div class="stat-card orange">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-num">{{ pending_requests|length|default:"0" }}</div>
+        <div class="stat-label">Pending Requests</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon">✅</div>
+        <div class="stat-num">{{ completed_jobs|default:"0" }}</div>
+        <div class="stat-label">Completed Jobs</div>
+      </div>
+      <div class="stat-card indigo">
+        <div class="stat-icon">💵</div>
+        <div class="stat-num">₹{{ total_earnings|default:"0" }}</div>
+        <div class="stat-label">Total Earnings</div>
+      </div>
+    </div>
+
+    <!-- Service Requests -->
+    <div id="requests" style="margin-bottom:28px">
+      <div class="sect-head">
+        <div class="sect-title">📋 Service Requests</div>
+        <a href="#" class="sect-link">View All →</a>
+      </div>
+      {% if pending_requests %}
+        {% for req in pending_requests %}
+        <div class="req-card">
+          <div class="req-avatar">{{ req.customer_name|first|upper|default:"C" }}</div>
+          <div class="req-info">
+            <div class="req-customer">{{ req.customer_name }}</div>
+            <div class="req-service">{{ req.service }}</div>
+            <div class="req-meta">📍 {{ req.location }} &nbsp;·&nbsp; 📅 {{ req.date }}</div>
+          </div>
+          <span class="status-badge s-pending">🟡 Pending</span>
+          <div class="req-actions">
+            <button class="req-btn req-btn-accept" onclick="handleRequest(this,'accept')">✓ Accept</button>
+            <button class="req-btn req-btn-reject" onclick="handleRequest(this,'reject')">✕ Reject</button>
+            <button class="req-btn req-btn-view">Details</button>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+      <div class="empty-state" style="background:var(--dash-card);border:1px solid var(--dash-border);border-radius:14px">
+        <div class="ei">📋</div>
+        <p>No pending requests right now.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Earnings -->
+<div id="earnings">
+  <div class="sect-head">
+    <div class="sect-title">💰 Earnings Overview</div>
+  </div>
+  <div style="background:var(--dash-card);border:1px solid var(--dash-border);border-radius:14px;padding:24px">
+
+    <!-- Summary Cards -->
+    <div class="earn-grid" style="margin-bottom:20px">
+      <div class="earn-card">
+        <div class="earn-amount" id="todayEarn">₹0</div>
+        <div class="earn-label">Today</div>
+      </div>
+      <div class="earn-card">
+        <div class="earn-amount" id="weekEarn">₹0</div>
+        <div class="earn-label">This Week (Auto)</div>
+      </div>
+      <div class="earn-card">
+        <div class="earn-amount" id="monthEarn">₹0</div>
+        <div class="earn-label">This Month</div>
+      </div>
+    </div>
+
+    <!-- Manual Day Input -->
+    <div style="margin-bottom:20px">
+      <div style="font-size:0.82rem;color:var(--text-muted);font-family:'Poppins',sans-serif;font-weight:600;margin-bottom:12px">
+        📝 Enter Daily Earnings (₹) — Weekly total updates automatically
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px">
+
+        <div style="text-align:center">
+          <div style="font-size:0.72rem;color:var(--text-muted);font-family:'Poppins',sans-serif;margin-bottom:6px;font-weight:600">Mon</div>
+          <input type="number" min="0" placeholder="0" id="inp0"
+            style="width:100%;background:#0b0c14;border:1px solid rgba(255,255,255,0.08);color:#f0f0f8;padding:10px 6px;border-radius:8px;font-size:0.82rem;text-align:center;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s"
+            oninput="updateDay(0,this.value)"
+            onfocus="this.style.borderColor='#6c63ff'"
+            onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
+        </div>
+
+        <div style="text-align:center">
+          <div style="font-size:0.72rem;color:var(--text-muted);font-family:'Poppins',sans-serif;margin-bottom:6px;font-weight:600">Tue</div>
+          <input type="number" min="0" placeholder="0" id="inp1"
+            style="width:100%;background:#0b0c14;border:1px solid rgba(255,255,255,0.08);color:#f0f0f8;padding:10px 6px;border-radius:8px;font-size:0.82rem;text-align:center;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s"
+            oninput="updateDay(1,this.value)"
+            onfocus="this.style.borderColor='#6c63ff'"
+            onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
+        </div>
+
+        <div style="text-align:center">
+          <div style="font-size:0.72rem;color:var(--text-muted);font-family:'Poppins',sans-serif;margin-bottom:6px;font-weight:600">Wed</div>
+          <input type="number" min="0" placeholder="0" id="inp2"
+            style="width:100%;background:#0b0c14;border:1px solid rgba(255,255,255,0.08);color:#f0f0f8;padding:10px 6px;border-radius:8px;font-size:0.82rem;text-align:center;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s"
+            oninput="updateDay(2,this.value)"
+            onfocus="this.style.borderColor='#6c63ff'"
+            onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
+        </div>
+
+        <div style="text-align:center">
+          <div style="font-size:0.72rem;color:var(--text-muted);font-family:'Poppins',sans-serif;margin-bottom:6px;font-weight:600">Thu</div>
+          <input type="number" min="0" placeholder="0" id="inp3"
+            style="width:100%;background:#0b0c14;border:1px solid rgba(255,255,255,0.08);color:#f0f0f8;padding:10px 6px;border-radius:8px;font-size:0.82rem;text-align:center;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s"
+            oninput="updateDay(3,this.value)"
+            onfocus="this.style.borderColor='#6c63ff'"
+            onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
+        </div>
+
+        <div style="text-align:center">
+          <div style="font-size:0.72rem;color:var(--text-muted);font-family:'Poppins',sans-serif;margin-bottom:6px;font-weight:600">Fri</div>
+          <input type="number" min="0" placeholder="0" id="inp4"
+            style="width:100%;background:#0b0c14;border:1px solid rgba(255,255,255,0.08);color:#f0f0f8;padding:10px 6px;border-radius:8px;font-size:0.82rem;text-align:center;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s"
+            oninput="updateDay(4,this.value)"
+            onfocus="this.style.borderColor='#6c63ff'"
+            onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
+        </div>
+
+        <div style="text-align:center">
+          <div style="font-size:0.72rem;color:var(--text-muted);font-family:'Poppins',sans-serif;margin-bottom:6px;font-weight:600">Sat</div>
+          <input type="number" min="0" placeholder="0" id="inp5"
+            style="width:100%;background:#0b0c14;border:1px solid rgba(255,255,255,0.08);color:#f0f0f8;padding:10px 6px;border-radius:8px;font-size:0.82rem;text-align:center;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s"
+            oninput="updateDay(5,this.value)"
+            onfocus="this.style.borderColor='#6c63ff'"
+            onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
+        </div>
+
+        <div style="text-align:center">
+          <div style="font-size:0.72rem;color:var(--text-muted);font-family:'Poppins',sans-serif;margin-bottom:6px;font-weight:600">Sun</div>
+          <input type="number" min="0" placeholder="0" id="inp6"
+            style="width:100%;background:#0b0c14;border:1px solid rgba(255,255,255,0.08);color:#f0f0f8;padding:10px 6px;border-radius:8px;font-size:0.82rem;text-align:center;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s"
+            oninput="updateDay(6,this.value)"
+            onfocus="this.style.borderColor='#6c63ff'"
+            onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Bar Chart -->
+    <div>
+      <div style="font-size:0.78rem;color:var(--text-muted);font-family:'Poppins',sans-serif;margin-bottom:10px;font-weight:600">
+        📊 Weekly Earnings Chart
+      </div>
+      <div id="earningsChart" style="display:flex;align-items:flex-end;gap:8px;height:130px;padding:10px 0"></div>
+
+  </div>
+</div>
+</main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── EARNINGS with localStorage + IST timezone ──
+const STORAGE_KEY = 'sernest_earnings';
+const TZ = 'Asia/Kolkata';
+const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+function getTodayName() {
+  const d = new Date(new Date().toLocaleString('en-US', {timeZone: TZ}));
+  const idx = d.getDay();
+  return DAY_NAMES[idx === 0 ? 6 : idx - 1];
+}
+
+function getWeekKey() {
+  const d = new Date(new Date().toLocaleString('en-US', {timeZone: TZ}));
+  const day = d.getDay();
+  const monday = new Date(d);
+  monday.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
+  return monday.toLocaleDateString('en-CA', {timeZone: TZ});
+}
+
+function getMonthKey() {
+  const d = new Date(new Date().toLocaleString('en-US', {timeZone: TZ}));
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+function loadData() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+  catch(e) { return {}; }
+}
+
+function saveData(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function getWeekData() {
+  const data = loadData();
+  const weekKey = getWeekKey();
+  if (!data[weekKey]) {
+    data[weekKey] = {Mon:0,Tue:0,Wed:0,Thu:0,Fri:0,Sat:0,Sun:0};
+    saveData(data);
+  }
+  return {data, weekKey, week: data[weekKey]};
+}
+
+function populateInputs() {
+  const {week} = getWeekData();
+  DAY_NAMES.forEach((name, i) => {
+    const inp = document.getElementById('inp' + i);
+    if (inp && week[name]) inp.value = week[name];
+  });
+}
+
+function renderChart() {
+  const {week} = getWeekData();
+  const vals   = DAY_NAMES.map(n => week[n] || 0);
+  const maxVal = Math.max(...vals, 1);
+  const today  = getTodayName();
+
+  const chart = document.getElementById('earningsChart');
+  if (!chart) return;
+  chart.innerHTML = '';
+
+  vals.forEach((val, i) => {
+    const pct     = (val / maxVal) * 100;
+    const label   = val >= 1000 ? '₹'+(val/1000).toFixed(1)+'k' : '₹'+val;
+    const isToday = DAY_NAMES[i] === today;
+    chart.innerHTML += `
+      <div class="bar-col" style="display:flex;flex-direction:column;align-items:center;flex:1;gap:4px">
+        <div style="font-size:0.68rem;color:${isToday?'#a78bfa':'#6b6d82'};font-family:'Poppins',sans-serif;font-weight:600">${label}</div>
+        <div style="flex:1;width:100%;display:flex;align-items:flex-end">
+          <div style="width:100%;height:${Math.max(pct,3)}%;background:${isToday?'linear-gradient(180deg,#a78bfa,#6c63ff)':'linear-gradient(180deg,#6c63ff,#4f46e5)'};border-radius:4px 4px 0 0;min-height:4px;transition:height .4s ease"></div>
+        </div>
+        <div style="font-size:0.68rem;color:${isToday?'#a78bfa':'#6b6d82'};font-family:'Poppins',sans-serif">${DAY_NAMES[i]}</div>
+      </div>`;
+  });
+
+  // Weekly total
+  const weekTotal = vals.reduce((s, v) => s + v, 0);
+  const weEl = document.getElementById('weekEarn');
+  if (weEl) weEl.textContent = '₹' + weekTotal.toLocaleString('en-IN');
+
+  // Today total
+  const teEl = document.getElementById('todayEarn');
+  if (teEl) teEl.textContent = '₹' + (week[today] || 0).toLocaleString('en-IN');
+
+  // Monthly total — sum all weeks in current month
+  const data = loadData();
+  const monthKey = getMonthKey();
+  let monthTotal = 0;
+  Object.keys(data).forEach(wk => {
+    if (wk.startsWith(monthKey)) {
+      Object.values(data[wk]).forEach(v => monthTotal += (v || 0));
+    }
+  });
+  const meEl = document.getElementById('monthEarn');
+  if (meEl) meEl.textContent = '₹' + monthTotal.toLocaleString('en-IN');
+}
+
+function updateDay(index, value) {
+  const {data, weekKey, week} = getWeekData();
+  week[DAY_NAMES[index]] = parseInt(value) || 0;
+  data[weekKey] = week;
+  saveData(data);
+  renderChart();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  populateInputs();
+  renderChart();
+});
+
+function handleRequest(btn, action) {
+  const card = btn.closest('.req-card');
+  if (action === 'accept') {
+    card.style.borderColor = 'rgba(34,197,94,0.4)';
+    card.style.background  = 'rgba(34,197,94,0.05)';
+    btn.closest('.req-actions').innerHTML = '<span class="status-badge s-completed">✓ Accepted</span>';
+  } else {
+    card.style.opacity = '0.4';
+    setTimeout(() => card.remove(), 400);
+  }
+}
+
+function toggleAvailability(el) {
+  fetch('/update-availability/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token }}'
+    },
+    body: JSON.stringify({available: el.checked})
+  }).catch(() => {});
+}
+</script>
+{% endblock %}

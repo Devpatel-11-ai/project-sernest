@@ -109,3 +109,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
     setInterval(moveSlider, 3000);
 });
+
+function toggleProfileMenu() {
+    const dd = document.getElementById('navProfileDropdown');
+    dd.classList.toggle('open');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+    const wrap = document.getElementById('navProfileWrap');
+    if (wrap && !wrap.contains(e.target)) {
+        const dd = document.getElementById('navProfileDropdown');
+        if (dd) dd.classList.remove('open');
+    }
+});
