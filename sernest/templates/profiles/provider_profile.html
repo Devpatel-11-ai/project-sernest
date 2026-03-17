@@ -515,8 +515,15 @@
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
               <span style="font-size:0.75rem;color:var(--muted);width:14px;font-family:'Poppins',sans-serif">{{ i }}</span>
               <div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden">
-                <div style="height:100%;background:#f59e0b;border-radius:3px;
-                  width:{% if i == '5' %}70%{% elif i == '4' %}20%{% elif i == '3' %}7%{% else %}3%{% endif %}"></div>
+                {% if i == '5' %}
+                  <div style="height:100%;background:#f59e0b;border-radius:3px;width:70%"></div>
+                {% elif i == '4' %}
+                  <div style="height:100%;background:#f59e0b;border-radius:3px;width:20%"></div>
+                {% elif i == '3' %}
+                  <div style="height:100%;background:#f59e0b;border-radius:3px;width:7%"></div>
+                {% else %}
+                  <div style="height:100%;background:#f59e0b;border-radius:3px;width:3%"></div>
+                {% endif %}
               </div>
             </div>
             {% endfor %}
@@ -680,13 +687,15 @@ function syncAvailPill(el) {
     txt.textContent = 'Unavailable';
   }
 }
+</script>
 
 {% if messages %}
   {% for msg in messages %}
     {% if 'success' in msg.tags %}
-      document.addEventListener('DOMContentLoaded', () => showToast('{{ msg }}'));
+      <script>
+        document.addEventListener('DOMContentLoaded', () => showToast('{{ msg }}'));
+      </script>
     {% endif %}
   {% endfor %}
 {% endif %}
-</script>
 {% endblock %}
