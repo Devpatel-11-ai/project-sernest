@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Manage Bookings — SerNest Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+:root{--bg:#060810;--bg2:#0a0d18;--card:#0e1120;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.12);--accent:#4f6ef7;--accent2:#7c3aed;--green:#10b981;--red:#ef4444;--orange:#f59e0b;--yellow:#eab308;--text:#e8eaf0;--text2:#9ca3b8;--text3:#4b5270;--font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;--sidebar:240px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font)}
+.ad-wrap{display:flex;min-height:100vh;padding-top:70px}
+.ad-sidebar{width:var(--sidebar);position:fixed;top:70px;left:0;bottom:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:50;overflow-y:auto;padding:20px 0 40px}
+.ad-brand{padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:12px}
+.ad-brand-tag{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(79,110,247,.15),rgba(124,58,237,.15));border:1px solid rgba(79,110,247,.25);border-radius:8px;padding:6px 12px;font-size:.72rem;font-weight:700;color:var(--accent);letter-spacing:.06em;text-transform:uppercase}
+.ad-nav-label{padding:16px 20px 6px;font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+.ad-nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;text-decoration:none;color:var(--text2);font-size:.84rem;font-weight:500;transition:all .15s;border-left:3px solid transparent;margin:1px 0}
+.ad-nav-item:hover{color:var(--text);background:rgba(255,255,255,.04);text-decoration:none}
+.ad-nav-item.active{color:var(--accent);background:rgba(79,110,247,.08);border-left-color:var(--accent)}
+.ad-nav-icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.ad-main{margin-left:var(--sidebar);flex:1;padding:32px 40px 80px}
+.ad-topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px}
+.ad-topbar h1{font-size:1.5rem;font-weight:800;color:var(--text);letter-spacing:-.02em}
+.ad-topbar p{color:var(--text2);font-size:.83rem;margin-top:4px}
+.ad-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s;text-decoration:none;border:none}
+.ad-btn-primary{background:var(--accent);color:#fff}
+.ad-btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}
+.ad-btn-ghost:hover{color:var(--text);border-color:rgba(255,255,255,.2)}
+.filters{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.search-input{flex:1;min-width:200px;background:var(--card);border:1px solid var(--border);border-radius:9px;padding:10px 16px;color:var(--text);font-family:var(--font);font-size:.84rem;outline:none;transition:border-color .2s}
+.search-input::placeholder{color:var(--text3)}
+.search-input:focus{border-color:var(--accent)}
+select.search-input{cursor:pointer}
+.ad-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.ad-table-wrap{overflow-x:auto}
+.ad-table{width:100%;border-collapse:collapse;font-size:.81rem}
+.ad-table th{text-align:left;padding:10px 14px;font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);border-bottom:1px solid var(--border);white-space:nowrap}
+.ad-table td{padding:12px 14px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle}
+.ad-table tr:last-child td{border-bottom:none}
+.ad-table tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
+.name-cell{color:var(--text);font-weight:600}
+.mono{font-family:var(--mono);font-size:.76rem;color:var(--text3)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:.68rem;font-weight:600;white-space:nowrap}
+.b-pending{background:rgba(245,158,11,.12);color:var(--orange);border:1px solid rgba(245,158,11,.25)}
+.b-confirmed{background:rgba(79,110,247,.12);color:#818cf8;border:1px solid rgba(79,110,247,.25)}
+.b-completed{background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.25)}
+.b-cancelled{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.25)}
+.b-in_progress{background:rgba(6,182,212,.12);color:#67e8f9;border:1px solid rgba(6,182,212,.25)}
+.act-btn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;cursor:pointer;transition:all .15s;text-decoration:none;border:1px solid var(--border);background:transparent;font-size:.8rem;color:var(--text2)}
+.act-btn:hover{border-color:var(--border2);color:var(--text);background:rgba(255,255,255,.05)}
+.act-btn.edit:hover{border-color:rgba(79,110,247,.4);color:var(--accent);background:rgba(79,110,247,.08)}
+.act-btn.del:hover{border-color:rgba(239,68,68,.4);color:var(--red);background:rgba(239,68,68,.08)}
+.act-group{display:flex;gap:5px}
+.ad-avatar{width:28px;height:28px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#fff}
+.av-blue{background:linear-gradient(135deg,#4f6ef7,#818cf8)}
+.user-cell{display:flex;align-items:center;gap:8px}
+.user-email{font-size:.72rem;color:var(--text3);font-family:var(--mono)}
+.ad-empty{text-align:center;padding:48px 20px;color:var(--text2)}
+.ad-empty-icon{font-size:2.4rem;margin-bottom:12px;opacity:.5}
+.ad-messages{margin-bottom:20px}
+.ad-msg{padding:12px 16px;border-radius:8px;font-size:.83rem;margin-bottom:8px}
+.ad-msg-success{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);color:#34d399}
+@media(max-width:768px){.ad-sidebar{display:none}.ad-main{margin-left:0;padding:20px 16px}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ad-wrap">
+  <aside class="ad-sidebar">
+    <div class="ad-brand"><div class="ad-brand-tag">⚡ Admin Panel</div></div>
+    <div class="ad-nav-label">Overview</div>
+    <a href="{% url 'core:admin_dashboard' %}" class="ad-nav-item"><span class="ad-nav-icon">📊</span> Dashboard</a>
+    <div class="ad-nav-label">Management</div>
+    <a href="{% url 'core:admin_users' %}" class="ad-nav-item"><span class="ad-nav-icon">👥</span> Users</a>
+    <a href="{% url 'core:admin_providers' %}" class="ad-nav-item"><span class="ad-nav-icon">🔧</span> Providers</a>
+    <a href="{% url 'core:admin_bookings' %}" class="ad-nav-item active"><span class="ad-nav-icon">📋</span> Bookings</a>
+    <div class="ad-nav-label">System</div>
+    <a href="/admin/" class="ad-nav-item"><span class="ad-nav-icon">⚙️</span> Django Admin</a>
+    <a href="{% url 'home' %}" class="ad-nav-item"><span class="ad-nav-icon">🏠</span> View Site</a>
+    <a href="{% url 'core:logout' %}" class="ad-nav-item"><span class="ad-nav-icon">🚪</span> Sign Out</a>
+  </aside>
+
+  <main class="ad-main">
+    {% if messages %}
+    <div class="ad-messages">
+      {% for msg in messages %}<div class="ad-msg ad-msg-success">{{ msg }}</div>{% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="ad-topbar">
+      <div>
+        <h1>📋 Manage Bookings</h1>
+        <p>View, edit and manage all service bookings</p>
+      </div>
+      <a href="{% url 'core:admin_dashboard' %}" class="ad-btn ad-btn-ghost">← Back</a>
+    </div>
+
+    <form method="get" class="filters">
+      <input name="q" value="{{ query }}" placeholder="🔍  Search bookings…" class="search-input">
+      <select name="status" class="search-input" style="max-width:180px">
+        <option value="">All Statuses</option>
+        {% for val,label in status_choices %}
+        <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="ad-btn ad-btn-primary">Filter</button>
+      {% if query or status_filter %}<a href="{% url 'core:admin_bookings' %}" class="ad-btn ad-btn-ghost">Clear</a>{% endif %}
+    </form>
+
+    <div class="ad-card">
+      <div class="ad-table-wrap">
+        <table class="ad-table">
+          <thead>
+            <tr><th>#</th><th>Customer</th><th>Service</th><th>Provider</th><th>Date</th><th>Amount</th><th>Status</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            {% if bookings %}
+              {% for b in bookings %}
+              <tr>
+                <td class="mono">#{{ b.id }}</td>
+                <td>
+                  <div class="user-cell">
+                    <div class="ad-avatar av-blue">{{ b.user.first_name|first|upper|default:"U" }}</div>
+                    <div>
+                      <div class="name-cell">{{ b.user.first_name }} {{ b.user.last_name }}</div>
+                      <div class="user-email">{{ b.user.email }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="name-cell">{{ b.service_name }}</td>
+                <td>{{ b.provider.name|default:"–" }}</td>
+                <td class="mono">{% if b.scheduled_date %}{{ b.scheduled_date|date:"d M Y" }}{% else %}–{% endif %}</td>
+                <td style="color:var(--green);font-weight:700;font-family:var(--mono)">₹{{ b.amount }}</td>
+                <td>
+                  <span class="badge b-{{ b.status }}">
+                    {% if b.status == 'pending' %}⏳{% elif b.status == 'confirmed' %}✅{% elif b.status == 'completed' %}🎉{% elif b.status == 'cancelled' %}❌{% else %}🔄{% endif %}
+                    {{ b.get_status_display }}
+                  </span>
+                </td>
+                <td>
+                  <div class="act-group">
+                    <a href="{% url 'core:admin_booking_edit' b.id %}" class="act-btn edit" title="Edit">✏️</a>
+                    <a href="{% url 'core:admin_booking_delete' b.id %}" class="act-btn del" title="Delete" onclick="return confirm('Delete booking #{{ b.id }}?')">🗑️</a>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr><td colspan="8"><div class="ad-empty"><div class="ad-empty-icon">📋</div><p>No bookings found.</p></div></td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

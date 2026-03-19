@@ -1,16 +1,21 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect , get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import Category, ServiceProvider, User
 from django.http import JsonResponse
+from django.db.models import Sum, Count, Q
 from django.core.mail import send_mail
 from django.conf import settings
 from .google_sheet import save_contact
+from django.utils import timezone
+from datetime import timedelta
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime
 import os
+
+
 
 
 
@@ -407,7 +412,11 @@ def user_profile(request):
         user.landmark    = request.POST.get('landmark', '')
 
         # Handle profile photo upload
-        if 'profile_photo' in request.FILES:
+        if request.POST.get('remove_photo') == '1':
+            if user.profile_photo:
+                 user.profile_photo.delete(save=False)
+            user.profile_photo = None
+        elif 'profile_photo' in request.FILES:
             user.profile_photo = request.FILES['profile_photo']
 
         user.save()
@@ -437,7 +446,11 @@ def provider_profile(request):
         provider.experience = request.POST.get('experience', provider.experience)
         provider.mode       = request.POST.get('mode', provider.mode)
         provider.available  = request.POST.get('available') == 'on'
-        if 'profile_image' in request.FILES:
+        if request.POST.get('remove_photo') == '1':
+            if provider.profile_image:
+                provider.profile_image.delete(save=False)
+            provider.profile_image = None
+        elif 'profile_image' in request.FILES:
             provider.profile_image = request.FILES['profile_image']
         provider.save()
         from django.contrib import messages
@@ -465,3 +478,179 @@ def role_redirect(request):
         return redirect('core:provider_dashboard')
     else:
         return redirect('core:user_dashboard')
+
+def admin_required(view_func):
+    """Decorator: only allow users with role='admin'"""
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated or request.user.role != 'admin':
+            return redirect('home')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+ 
+ 
+# ──────────────────────────────────────────
+#  ADMIN DASHBOARD  (main overview)
+# ──────────────────────────────────────────
+@login_required
+@admin_required
+def admin_dashboard(request):
+    from .models import User, ServiceProvider, Booking
+ 
+    today = timezone.now().date()
+    week_ago = today - timedelta(days=7)
+ 
+    # Stats
+    total_users     = User.objects.filter(role='user').count()
+    total_providers = ServiceProvider.objects.count()
+    total_bookings  = Booking.objects.count()
+    total_revenue   = Booking.objects.filter(status='completed').aggregate(t=Sum('amount'))['t'] or 0
+    pending_bookings = Booking.objects.filter(status='pending').count()
+    active_providers = ServiceProvider.objects.filter(available=True).count()
+ 
+    # Recent data
+    recent_bookings  = Booking.objects.select_related('user','provider','category').order_by('-created_at')[:8]
+    recent_users     = User.objects.filter(role='user').order_by('-created_at')[:5]
+    recent_providers = ServiceProvider.objects.select_related('category').order_by('-id')[:5]
+ 
+    # Weekly revenue chart
+    weekly_data = []
+    for i in range(6, -1, -1):
+        day = today - timedelta(days=i)
+        rev = Booking.objects.filter(
+            status='completed',
+            updated_at__date=day
+        ).aggregate(t=Sum('amount'))['t'] or 0
+        weekly_data.append({'day': day.strftime('%a'), 'revenue': float(rev)})
+ 
+    context = {
+        'total_users':       total_users,
+        'total_providers':   total_providers,
+        'total_bookings':    total_bookings,
+        'total_revenue':     total_revenue,
+        'pending_bookings':  pending_bookings,
+        'active_providers':  active_providers,
+        'recent_bookings':   recent_bookings,
+        'recent_users':      recent_users,
+        'recent_providers':  recent_providers,
+        'weekly_data':       weekly_data,
+    }
+    return render(request, 'dashboards/admin_dashboard.html', context)
+ 
+ 
+# ──────────────────────────────────────────
+#  MANAGE USERS
+# ──────────────────────────────────────────
+@login_required
+@admin_required
+def admin_users(request):
+    from .models import User
+    query = request.GET.get('q', '')
+    users = User.objects.filter(role='user').order_by('-created_at')
+    if query:
+        users = users.filter(Q(first_name__icontains=query) | Q(email__icontains=query))
+    return render(request, 'dashboards/admin_users.html', {'users': users, 'query': query})
+ 
+ 
+@login_required
+@admin_required
+def admin_toggle_user(request, user_id):
+    from .models import User
+    user = get_object_or_404(User, id=user_id)
+    user.is_active = not user.is_active
+    user.save()
+    status = 'activated' if user.is_active else 'deactivated'
+    messages.success(request, f'✅ User {user.email} has been {status}.')
+    return redirect('core:admin_users')
+ 
+ 
+# ──────────────────────────────────────────
+#  MANAGE SERVICE PROVIDERS
+# ──────────────────────────────────────────
+@login_required
+@admin_required
+def admin_providers(request):
+    from .models import ServiceProvider
+    query = request.GET.get('q', '')
+    providers = ServiceProvider.objects.select_related('category').order_by('-id')
+    if query:
+        providers = providers.filter(Q(name__icontains=query) | Q(email__icontains=query) | Q(city__icontains=query))
+    return render(request, 'dashboards/admin_providers.html', {'providers': providers, 'query': query})
+ 
+ 
+@login_required
+@admin_required
+def admin_toggle_provider(request, provider_id):
+    from .models import ServiceProvider
+    provider = get_object_or_404(ServiceProvider, id=provider_id)
+    provider.available = not provider.available
+    provider.save()
+    status = 'activated' if provider.available else 'deactivated'
+    messages.success(request, f'✅ Provider {provider.name} has been {status}.')
+    return redirect('core:admin_providers')
+ 
+ 
+# ──────────────────────────────────────────
+#  MANAGE BOOKINGS
+# ──────────────────────────────────────────
+@login_required
+@admin_required
+def admin_bookings(request):
+    from .models import Booking
+    query  = request.GET.get('q', '')
+    status = request.GET.get('status', '')
+    bookings = Booking.objects.select_related('user', 'provider', 'category').order_by('-created_at')
+    if query:
+        bookings = bookings.filter(
+            Q(service_name__icontains=query) |
+            Q(user__first_name__icontains=query) |
+            Q(user__email__icontains=query)
+        )
+    if status:
+        bookings = bookings.filter(status=status)
+    return render(request, 'dashboards/admin_bookings.html', {
+        'bookings': bookings,
+        'query': query,
+        'status_filter': status,
+        'status_choices': [('pending','Pending'),('confirmed','Confirmed'),('in_progress','In Progress'),('completed','Completed'),('cancelled','Cancelled')],
+    })
+ 
+ 
+@login_required
+@admin_required
+def admin_booking_edit(request, booking_id):
+    from .models import Booking, ServiceProvider
+    booking   = get_object_or_404(Booking, id=booking_id)
+    providers = ServiceProvider.objects.all()
+ 
+    if request.method == 'POST':
+        booking.service_name   = request.POST.get('service_name', booking.service_name)
+        booking.status         = request.POST.get('status', booking.status)
+        booking.amount         = request.POST.get('amount', booking.amount)
+        booking.address        = request.POST.get('address', booking.address)
+        booking.city           = request.POST.get('city', booking.city)
+        booking.scheduled_date = request.POST.get('scheduled_date') or None
+        booking.scheduled_time = request.POST.get('scheduled_time') or None
+        booking.notes          = request.POST.get('notes', booking.notes)
+        provider_id = request.POST.get('provider')
+        if provider_id:
+            booking.provider = get_object_or_404(ServiceProvider, id=provider_id)
+        booking.save()
+        messages.success(request, f'✅ Booking #{booking.id} updated successfully.')
+        return redirect('core:admin_bookings')
+ 
+    return render(request, 'dashboards/admin_booking_edit.html', {
+        'booking': booking,
+        'providers': providers,
+        'status_choices': [('pending','Pending'),('confirmed','Confirmed'),('in_progress','In Progress'),('completed','Completed'),('cancelled','Cancelled')],
+    })
+ 
+ 
+@login_required
+@admin_required
+def admin_booking_delete(request, booking_id):
+    from .models import Booking
+    booking = get_object_or_404(Booking, id=booking_id)
+    booking.delete()
+    messages.success(request, f'✅ Booking #{booking_id} deleted.')
+    return redirect('core:admin_bookings')
+ 

@@ -18,7 +18,7 @@ urlpatterns = [
  # ── NEW: Dashboards ──
   path('dashboard/',views.user_dashboard,name='user_dashboard'),
   path('dashboard/provider/',views.provider_dashboard,name='provider_dashboard'),
-  path('dashboard/admin/',views.admin_dashboard,name='admin_dashboard'),
+  
  
  # ── NEW: Profiles ──
   path('profile/',views.user_profile,name='user_profile'),
@@ -26,5 +26,20 @@ urlpatterns = [
  
  # ── NEW: Role redirect after login ──
   path('redirect/',views.role_redirect,name='role_redirect'),
+
+  # ══════════════════════════════════════════════════════════════
+  #  ADD THESE LINES to your core/urls.py  urlpatterns list
+  #  (after the existing dashboard lines)
+  # ══════════════════════════════════════════════════════════════
+   
+ # --- Admin management URLs ---
+  path('dashboard/admin/',          views.admin_dashboard,        name='admin_dashboard'),
+  path('dashboard/admin/users/',    views.admin_users,            name='admin_users'),
+  path('dashboard/admin/users/<int:user_id>/toggle/', views.admin_toggle_user, name='admin_toggle_user'),
+  path('dashboard/admin/providers/',views.admin_providers,        name='admin_providers'),
+  path('dashboard/admin/providers/<int:provider_id>/toggle/', views.admin_toggle_provider, name='admin_toggle_provider'),
+  path('dashboard/admin/bookings/', views.admin_bookings,         name='admin_bookings'),
+  path('dashboard/admin/bookings/<int:booking_id>/edit/',   views.admin_booking_edit,   name='admin_booking_edit'),
+  path('dashboard/admin/bookings/<int:booking_id>/delete/', views.admin_booking_delete, name='admin_booking_delete'),
   
-]
+  ]

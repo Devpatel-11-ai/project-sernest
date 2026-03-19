@@ -343,18 +343,32 @@
           <!-- Photo upload -->
           <div class="photo-upload-area">
             <div class="photo-preview" id="photoPreview">
-                {% if request.user.profile_photo %}
-                <img src="{{ request.user.profile_photo.url }}" alt="profile">
-                {% else %}
-                {{ request.user.first_name|first|upper|default:"U" }}
-                {% endif %}
+              {% if request.user.profile_photo %}
+              <img src="{{ request.user.profile_photo.url }}" alt="profile" id="photoImg">
+              {% else %}
+              <span id="photoInitial">{{ request.user.first_name|first|upper|default:"U" }}</span>
+              {% endif %}
             </div>
             <div>
               <label class="photo-upload-btn" for="photoInput">📷 Upload Photo</label>
               <input type="file" id="photoInput" name="profile_photo" accept="image/*" style="display:none" onchange="previewPhoto(this)">
-              <div class="photo-hint" style="margin-top:15px">JPG, PNG or WEBP · Max 2MB</div>
-            </div>
-          </div>
+              <input type="hidden" name="remove_photo" id="removePhotoInput" value="">
+              {% if request.user.profile_photo %}
+              <button type="button" class="photo-upload-btn" id="removePhotoBtn"
+              onclick="removePhoto()"
+              style="margin-left:8px;background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3);color:#f87171">
+              🗑️ Remove Photo
+            </button>
+            {% else %}
+            <button type="button" class="photo-upload-btn" id="removePhotoBtn"
+            onclick="removePhoto()"
+            style="margin-left:8px;background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3);color:#f87171;display:none">
+            🗑️ Remove Photo
+          </button>
+          {% endif %}
+          <div class="photo-hint" style="margin-top:10px">JPG, PNG or WEBP · Max 2MB</div>
+        </div>
+      </div>
 
           <div class="form-grid">
             <div class="f-group">
@@ -575,9 +589,26 @@ function previewPhoto(input) {
     reader.onload = e => {
       const preview = document.getElementById('photoPreview');
       preview.innerHTML = '<img src="' + e.target.result + '" alt="preview">';
+      document.getElementById('removePhotoInput').value = '';
+      document.getElementById('removePhotoBtn').style.display = 'inline-flex';
+      // Update sidebar avatar too
+      const sb = document.querySelector('.prof-big-avatar');
+      if (sb) sb.innerHTML = '<img src="' + e.target.result + '" alt="" style="width:100%;height:100%;object-fit:cover">';
     };
     reader.readAsDataURL(input.files[0]);
   }
+}
+
+function removePhoto() {
+  const preview = document.getElementById('photoPreview');
+  const initial = '{{ request.user.first_name|first|upper|default:"U" }}';
+  preview.innerHTML = '<span id="photoInitial">' + initial + '</span>';
+  document.getElementById('removePhotoInput').value = '1';
+  document.getElementById('removePhotoBtn').style.display = 'none';
+  document.getElementById('photoInput').value = '';
+  // Update sidebar avatar
+  const sb = document.querySelector('.prof-big-avatar');
+  if (sb) sb.innerHTML = initial;
 }
 
 function checkPwdStrength(val) {

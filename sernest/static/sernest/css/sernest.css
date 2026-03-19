@@ -528,17 +528,18 @@ body::after {
 }
 
 .workflow-header h2 {
-    font-size: 42px;
-    font-weight: 700;
-    color: #ffffff;
-    margin-bottom: 15px;
+    font-family: var(--font-display);
+    font-weight: 900;          /* Extra bold / Black weight */
+    font-size: 3.5rem;         /* Larger size like the hero */
+    letter-spacing: -1px;      /* Tight letter spacing */
+    line-height: 1.1;
 }
 
 .workflow-header h2 span {
-    background: linear-gradient(90deg, #6366f1, #a855f7);
-    background-clip: text;
+    background: linear-gradient(135deg, #7B5EA7, #4A90D9);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .workflow-header p {
@@ -595,6 +596,7 @@ body::after {
     color: #cbd5e1;
     line-height: 1.6;
 }
+
 
 /* Responsive */
 

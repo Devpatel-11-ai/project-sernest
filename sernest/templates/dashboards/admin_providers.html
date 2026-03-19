@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Manage Providers — SerNest Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+:root{--bg:#060810;--bg2:#0a0d18;--card:#0e1120;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.12);--accent:#4f6ef7;--green:#10b981;--red:#ef4444;--orange:#f59e0b;--yellow:#eab308;--text:#e8eaf0;--text2:#9ca3b8;--text3:#4b5270;--font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;--sidebar:240px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font)}
+.ad-wrap{display:flex;min-height:100vh;padding-top:70px}
+.ad-sidebar{width:var(--sidebar);position:fixed;top:70px;left:0;bottom:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:50;overflow-y:auto;padding:20px 0 40px}
+.ad-brand{padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:12px}
+.ad-brand-tag{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(79,110,247,.15),rgba(124,58,237,.15));border:1px solid rgba(79,110,247,.25);border-radius:8px;padding:6px 12px;font-size:.72rem;font-weight:700;color:var(--accent);letter-spacing:.06em;text-transform:uppercase}
+.ad-nav-label{padding:16px 20px 6px;font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+.ad-nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;text-decoration:none;color:var(--text2);font-size:.84rem;font-weight:500;transition:all .15s;border-left:3px solid transparent;margin:1px 0}
+.ad-nav-item:hover{color:var(--text);background:rgba(255,255,255,.04);text-decoration:none}
+.ad-nav-item.active{color:var(--accent);background:rgba(79,110,247,.08);border-left-color:var(--accent)}
+.ad-nav-icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.ad-main{margin-left:var(--sidebar);flex:1;padding:32px 40px 80px}
+.ad-topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px}
+.ad-topbar h1{font-size:1.5rem;font-weight:800;color:var(--text);letter-spacing:-.02em}
+.ad-topbar p{color:var(--text2);font-size:.83rem;margin-top:4px}
+.ad-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s;text-decoration:none;border:none}
+.ad-btn-primary{background:var(--accent);color:#fff}
+.ad-btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}
+.ad-btn-ghost:hover{color:var(--text);border-color:rgba(255,255,255,.2)}
+.search-bar{display:flex;gap:10px;margin-bottom:20px}
+.search-input{flex:1;background:var(--card);border:1px solid var(--border);border-radius:9px;padding:10px 16px;color:var(--text);font-family:var(--font);font-size:.84rem;outline:none;transition:border-color .2s}
+.search-input::placeholder{color:var(--text3)}
+.search-input:focus{border-color:var(--accent)}
+.ad-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.ad-table-wrap{overflow-x:auto}
+.ad-table{width:100%;border-collapse:collapse;font-size:.81rem}
+.ad-table th{text-align:left;padding:10px 14px;font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);border-bottom:1px solid var(--border);white-space:nowrap}
+.ad-table td{padding:12px 14px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle}
+.ad-table tr:last-child td{border-bottom:none}
+.ad-table tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
+.name-cell{color:var(--text);font-weight:600}
+.mono{font-family:var(--mono);font-size:.76rem;color:var(--text3)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:.68rem;font-weight:600;white-space:nowrap}
+.b-active{background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.25)}
+.b-inactive{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.25)}
+.act-btn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;cursor:pointer;transition:all .15s;text-decoration:none;border:1px solid var(--border);background:transparent;font-size:.8rem;color:var(--text2)}
+.act-btn:hover{border-color:var(--border2);color:var(--text);background:rgba(255,255,255,.05)}
+.act-btn.toggle:hover{border-color:rgba(16,185,129,.4);color:var(--green);background:rgba(16,185,129,.08)}
+.act-group{display:flex;gap:5px}
+.ad-avatar{width:32px;height:32px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:#fff}
+.av-teal{background:linear-gradient(135deg,#0891b2,#67e8f9)}
+.user-cell{display:flex;align-items:center;gap:10px}
+.user-email{font-size:.72rem;color:var(--text3);font-family:var(--mono)}
+.star{color:var(--yellow);font-weight:700;font-size:.8rem}
+.ad-empty{text-align:center;padding:48px 20px;color:var(--text2)}
+.ad-empty-icon{font-size:2.4rem;margin-bottom:12px;opacity:.5}
+@media(max-width:768px){.ad-sidebar{display:none}.ad-main{margin-left:0;padding:20px 16px}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ad-wrap">
+  <aside class="ad-sidebar">
+    <div class="ad-brand"><div class="ad-brand-tag">⚡ Admin Panel</div></div>
+    <div class="ad-nav-label">Overview</div>
+    <a href="{% url 'core:admin_dashboard' %}" class="ad-nav-item"><span class="ad-nav-icon">📊</span> Dashboard</a>
+    <div class="ad-nav-label">Management</div>
+    <a href="{% url 'core:admin_users' %}" class="ad-nav-item"><span class="ad-nav-icon">👥</span> Users</a>
+    <a href="{% url 'core:admin_providers' %}" class="ad-nav-item active"><span class="ad-nav-icon">🔧</span> Providers</a>
+    <a href="{% url 'core:admin_bookings' %}" class="ad-nav-item"><span class="ad-nav-icon">📋</span> Bookings</a>
+    <div class="ad-nav-label">System</div>
+    <a href="/admin/" class="ad-nav-item"><span class="ad-nav-icon">⚙️</span> Django Admin</a>
+    <a href="{% url 'home' %}" class="ad-nav-item"><span class="ad-nav-icon">🏠</span> View Site</a>
+    <a href="{% url 'core:logout' %}" class="ad-nav-item"><span class="ad-nav-icon">🚪</span> Sign Out</a>
+  </aside>
+
+  <main class="ad-main">
+    <div class="ad-topbar">
+      <div>
+        <h1>🔧 Manage Providers</h1>
+        <p>View, approve and manage service providers</p>
+      </div>
+      <a href="{% url 'core:admin_dashboard' %}" class="ad-btn ad-btn-ghost">← Back</a>
+    </div>
+
+    <form method="get" class="search-bar">
+      <input name="q" value="{{ query }}" placeholder="🔍  Search by name, email or city…" class="search-input">
+      <button type="submit" class="ad-btn ad-btn-primary">Search</button>
+      {% if query %}<a href="{% url 'core:admin_providers' %}" class="ad-btn ad-btn-ghost">Clear</a>{% endif %}
+    </form>
+
+    <div class="ad-card">
+      <div class="ad-table-wrap">
+        <table class="ad-table">
+          <thead>
+            <tr><th>#</th><th>Provider</th><th>Category</th><th>City</th><th>Exp</th><th>Rating</th><th>Mode</th><th>Status</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            {% if providers %}
+              {% for p in providers %}
+              <tr>
+                <td class="mono">{{ p.id }}</td>
+                <td>
+                  <div class="user-cell">
+                    <div class="ad-avatar av-teal" style="width:28px;height:28px;font-size:.72rem">{{ p.name|first|upper }}</div>
+                    <div>
+                      <div class="name-cell">{{ p.name }}</div>
+                      <div class="user-email">{{ p.email }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>{{ p.category.name|default:"–" }}</td>
+                <td>{{ p.city }}</td>
+                <td class="mono">{{ p.experience }} yrs</td>
+                <td class="star">★ {{ p.rating }}</td>
+                <td>{{ p.get_mode_display }}</td>
+                <td><span class="badge {% if p.available %}b-active{% else %}b-inactive{% endif %}">{% if p.available %}● Active{% else %}○ Inactive{% endif %}</span></td>
+                <td>
+                  <div class="act-group">
+                    <a href="{% url 'core:admin_toggle_provider' p.id %}" class="act-btn toggle" title="Toggle Availability">{% if p.available %}🔒{% else %}✅{% endif %}</a>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr><td colspan="9"><div class="ad-empty"><div class="ad-empty-icon">🔧</div><p>No providers found{% if query %} for "{{ query }}"{% endif %}.</p></div></td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

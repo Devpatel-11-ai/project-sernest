@@ -172,62 +172,168 @@
 .mini-btn-ghost { background:rgba(255,255,255,0.06); color:var(--text-muted); border:1px solid var(--dash-border); }
 .mini-btn-ghost:hover { color:var(--red); border-color:rgba(239,68,68,0.3); }
 
-/* ── AI PANEL ── */
+/* ── AI PANEL V2 ── */
 .ai-panel {
   background:var(--dash-card); border:1px solid rgba(108,99,255,0.3);
-  border-radius:14px; padding:24px; margin-bottom:28px;
-  position:relative; overflow:hidden;
+  border-radius:16px; overflow:hidden; margin-bottom:28px;
 }
-.ai-panel::before {
-  content:''; position:absolute; top:-60px; right:-60px;
-  width:200px; height:200px; border-radius:50%;
-  background:radial-gradient(circle,rgba(108,99,255,0.12),transparent 70%);
+.ai-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:18px 22px;
+  background:linear-gradient(135deg,rgba(108,99,255,0.08),rgba(167,139,250,0.05));
+  border-bottom:1px solid rgba(108,99,255,0.15);
 }
-.ai-header { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+.ai-header-left { display:flex; align-items:center; gap:12px; }
 .ai-logo {
-  width:40px; height:40px; border-radius:10px;
+  width:42px; height:42px; border-radius:12px;
   background:linear-gradient(135deg,#6c63ff,#a78bfa);
   display:flex; align-items:center; justify-content:center;
-  font-size:1.2rem;
+  font-size:1.2rem; position:relative; flex-shrink:0;
+}
+.ai-online-dot {
+  position:absolute; top:-2px; right:-2px;
+  width:10px; height:10px; border-radius:50%; background:#22c55e;
+  box-shadow:0 0 0 0 rgba(34,197,94,0.5);
+  animation:aipulse 2s infinite;
+}
+@keyframes aipulse {
+  0%   { box-shadow:0 0 0 0 rgba(34,197,94,0.5); }
+  70%  { box-shadow:0 0 0 7px rgba(34,197,94,0); }
+  100% { box-shadow:0 0 0 0 rgba(34,197,94,0); }
 }
 .ai-title { font-family:'Poppins',sans-serif; font-size:0.95rem; font-weight:700; color:var(--text); }
-.ai-sub   { font-size:0.75rem; color:var(--text-muted); font-family:'Poppins',sans-serif; margin-top:1px; }
-
-.ai-quick-chips { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
-.ai-chip {
-  padding:6px 13px; border-radius:20px; font-size:0.77rem;
-  background:rgba(108,99,255,0.1); border:1px solid rgba(108,99,255,0.25);
-  color:var(--accent2); cursor:pointer; font-family:'Poppins',sans-serif;
-  transition:all .2s;
+.ai-sub {
+  font-size:0.72rem; color:var(--text-muted);
+  font-family:'Poppins',sans-serif; margin-top:2px;
+  display:flex; align-items:center; gap:5px;
 }
-.ai-chip:hover { background:rgba(108,99,255,0.2); border-color:rgba(108,99,255,0.5); }
+.ai-sub-dot { width:6px; height:6px; border-radius:50%; background:#22c55e; }
+.ai-clear-btn {
+  padding:5px 11px; border-radius:7px;
+  background:rgba(255,255,255,0.05); border:1px solid var(--dash-border);
+  color:var(--text-muted); font-size:0.73rem; cursor:pointer;
+  font-family:'Poppins',sans-serif; transition:all .2s;
+}
+.ai-clear-btn:hover { border-color:rgba(239,68,68,0.3); color:#f87171; }
 
-.ai-input-row { display:flex; gap:10px; margin-bottom:14px; }
+/* Quick chips */
+.ai-chips-wrap {
+  padding:14px 20px 12px;
+  border-bottom:1px solid var(--dash-border);
+  background:rgba(0,0,0,0.1);
+}
+.ai-chips-label {
+  font-size:0.67rem; color:var(--text-muted);
+  font-family:'Poppins',sans-serif;
+  letter-spacing:.05em; text-transform:uppercase; margin-bottom:8px;
+}
+.ai-quick-chips { display:flex; gap:7px; flex-wrap:wrap; }
+.ai-chip {
+  padding:5px 12px; border-radius:20px; font-size:0.75rem;
+  background:rgba(108,99,255,0.08); border:1px solid rgba(108,99,255,0.2);
+  color:var(--accent2); cursor:pointer;
+  font-family:'Poppins',sans-serif; font-weight:500;
+  transition:all .2s; white-space:nowrap;
+}
+.ai-chip:hover { background:rgba(108,99,255,0.2); border-color:rgba(108,99,255,0.5); transform:translateY(-1px); }
+
+/* Input row */
+.ai-input-wrap { padding:14px 20px 16px; }
+.ai-input-row { display:flex; gap:10px; }
 .ai-input {
   flex:1; background:#0b0c14; border:1px solid var(--dash-border);
   color:var(--text); padding:11px 14px; border-radius:10px;
-  font-size:0.87rem; font-family:'Poppins',sans-serif; outline:none;
+  font-size:0.86rem; font-family:'Poppins',sans-serif; outline:none;
   transition:border-color .2s;
 }
 .ai-input:focus { border-color:var(--accent); }
-.ai-input::placeholder { color:rgba(255,255,255,0.2); }
+.ai-input::placeholder { color:rgba(255,255,255,0.18); }
 .ai-send-btn {
-  padding:11px 18px; background:var(--accent); border:none; color:#fff;
-  border-radius:10px; font-size:0.87rem; font-weight:600;
+  padding:11px 22px; background:var(--accent); border:none;
+  color:#fff; border-radius:10px; font-size:0.86rem; font-weight:700;
   cursor:pointer; font-family:'Poppins',sans-serif; transition:all .2s;
 }
 .ai-send-btn:hover { background:var(--accent2); box-shadow:0 0 20px var(--accent-glow); }
-
-.ai-response {
-  background:#0b0c14; border:1px solid var(--dash-border);
-  border-radius:10px; padding:14px 16px; display:none;
+.ai-send-btn:disabled { opacity:.5; cursor:not-allowed; }
+.ai-disclaimer {
+  font-size:0.67rem; color:var(--text-muted);
+  font-family:'Poppins',sans-serif; text-align:center; margin-top:8px;
 }
-.ai-response.show { display:block; animation:fadeIn .3s ease; }
+
+/* Response card */
+.ai-response-card {
+  margin:0 20px 18px;
+  background:#0b0c14; border:1px solid var(--dash-border);
+  border-radius:12px; overflow:hidden;
+  display:none;
+}
+.ai-response-card.show { display:block; animation:fadeIn .35s ease; }
 @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
-.ai-response-title { font-size:0.8rem; color:var(--accent2); font-weight:600; font-family:'Poppins',sans-serif; margin-bottom:8px; }
-.ai-response-body { font-size:0.84rem; color:var(--text); font-family:'Poppins',sans-serif; line-height:1.7; }
-.ai-thinking { display:none; font-size:0.82rem; color:var(--text-muted); font-family:'Poppins',sans-serif; padding:8px 0; }
-.ai-thinking.show { display:block; }
+
+.ai-rc-header {
+  display:flex; align-items:center; gap:8px;
+  padding:11px 16px; border-bottom:1px solid var(--dash-border);
+  background:rgba(108,99,255,0.07);
+}
+.ai-rc-icon { font-size:1rem; }
+.ai-rc-title {
+  font-family:'Poppins',sans-serif; font-size:0.82rem;
+  font-weight:700; color:var(--accent2);
+}
+.ai-rc-body { padding:16px; display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.ai-rc-section { display:flex; flex-direction:column; gap:6px; }
+.ai-rc-section.full { grid-column:1/-1; }
+.ai-rc-section-label {
+  font-size:0.67rem; font-weight:700; text-transform:uppercase;
+  letter-spacing:.06em; color:var(--text-muted);
+  font-family:'Poppins',sans-serif;
+}
+.ai-rc-section-content {
+  font-size:0.82rem; color:var(--text);
+  font-family:'Poppins',sans-serif; line-height:1.65;
+}
+.ai-rc-cost {
+  font-size:1.15rem; font-weight:800;
+  color:#4ade80; font-family:'Poppins',sans-serif;
+}
+.ai-rc-service {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:5px 12px; border-radius:8px; font-size:0.78rem;
+  font-weight:600; font-family:'Poppins',sans-serif;
+  background:rgba(108,99,255,0.15); border:1px solid rgba(108,99,255,0.3);
+  color:var(--accent2);
+}
+.ai-rc-footer {
+  padding:11px 16px; border-top:1px solid var(--dash-border);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.ai-rc-book-btn {
+  padding:8px 18px; background:var(--accent); border:none;
+  color:#fff; border-radius:8px; font-size:0.8rem; font-weight:700;
+  cursor:pointer; font-family:'Poppins',sans-serif;
+  transition:all .2s; text-decoration:none; display:inline-block;
+}
+.ai-rc-book-btn:hover { background:var(--accent2); color:#fff; }
+.ai-rc-disclaimer { font-size:0.68rem; color:var(--text-muted); font-family:'Poppins',sans-serif; }
+
+/* Thinking dots */
+.ai-thinking {
+  display:none; align-items:center; gap:8px;
+  padding:12px 20px; font-size:0.82rem;
+  color:var(--text-muted); font-family:'Poppins',sans-serif;
+}
+.ai-thinking.show { display:flex; }
+.ai-dots { display:flex; gap:4px; }
+.ai-dots span {
+  width:7px; height:7px; border-radius:50%; background:var(--accent2);
+  animation:dotBounce 1.2s infinite ease-in-out;
+}
+.ai-dots span:nth-child(2) { animation-delay:.2s; }
+.ai-dots span:nth-child(3) { animation-delay:.4s; }
+@keyframes dotBounce {
+  0%,60%,100% { transform:translateY(0); opacity:.4; }
+  30%          { transform:translateY(-6px); opacity:1; }
+}
 
 /* ── EMPTY STATE ── */
 .empty-state { text-align:center; padding:40px 20px; color:var(--text-muted); font-family:'Poppins',sans-serif; }
@@ -328,32 +434,93 @@
       </div>
     </div>
 
-    <!-- AI ASSISTANT -->
-    <div id="ai" class="ai-panel">
-      <div class="ai-header">
-        <div class="ai-logo">🤖</div>
-        <div>
-          <div class="ai-title">SerNest AI Assistant</div>
-          <div class="ai-sub">Get instant help for common service issues</div>
+   <!-- AI ASSISTANT -->
+    <div id="ai">
+
+      <!-- Panel -->
+      <div class="ai-panel">
+
+        <!-- Header -->
+        <div class="ai-header">
+          <div class="ai-header-left">
+            <div class="ai-logo">
+              🤖
+              <span class="ai-online-dot"></span>
+            </div>
+            <div>
+              <div class="ai-title">SerNest AI Assistant</div>
+              <div class="ai-sub">
+                <span class="ai-sub-dot"></span>
+                Online · Home services expert
+              </div>
+            </div>
+          </div>
+          <button class="ai-clear-btn" onclick="clearAI()">🗑 Clear</button>
         </div>
-      </div>
 
-      <div class="ai-quick-chips">
-        <span class="ai-chip" onclick="askAI('Why is my AC leaking water?')">❄️ AC leaking water?</span>
-        <span class="ai-chip" onclick="askAI('Estimated cost for pipe repair?')">🔧 Pipe repair cost?</span>
-        <span class="ai-chip" onclick="askAI('How long does geyser installation take?')">⏱️ Geyser install time?</span>
-        <span class="ai-chip" onclick="askAI('My washing machine is not spinning')">🌀 Washing machine issue?</span>
-        <span class="ai-chip" onclick="askAI('How to fix an electrical short circuit?')">⚡ Electrical issue?</span>
-      </div>
+        <!-- Quick chips -->
+        <div class="ai-chips-wrap">
+          <div class="ai-chips-label">Quick questions</div>
+          <div class="ai-quick-chips">
+            <span class="ai-chip" onclick="askAI('Why is my AC leaking water?')">❄️ AC leaking water</span>
+            <span class="ai-chip" onclick="askAI('Estimated cost for pipe repair?')">🔧 Pipe repair cost</span>
+            <span class="ai-chip" onclick="askAI('How long does geyser installation take?')">🚿 Geyser install time</span>
+            <span class="ai-chip" onclick="askAI('My washing machine is not spinning')">🌀 Washing machine issue</span>
+            <span class="ai-chip" onclick="askAI('How to fix electrical short circuit?')">⚡ Electrical issue</span>
+            <span class="ai-chip" onclick="askAI('My fan is making noise')">💨 Fan noise</span>
+            <span class="ai-chip" onclick="askAI('Bathroom tap is dripping')">🚰 Dripping tap</span>
+            <span class="ai-chip" onclick="askAI('How much does house painting cost?')">🎨 Painting cost</span>
+          </div>
+        </div>
 
-      <div class="ai-input-row">
-        <input class="ai-input" id="aiInput" type="text" placeholder="Ask your service question… e.g. Why is my fan making noise?">
-        <button class="ai-send-btn" onclick="sendAI()">Ask AI →</button>
-      </div>
-      <div class="ai-thinking" id="aiThinking">🤔 Analyzing your question…</div>
-      <div class="ai-response" id="aiResponse">
-        <div class="ai-response-title">🤖 AI Response</div>
-        <div class="ai-response-body" id="aiResponseBody"></div>
+        <!-- Thinking indicator -->
+        <div class="ai-thinking" id="aiThinking">
+          <div class="ai-dots"><span></span><span></span><span></span></div>
+          Analyzing your question…
+        </div>
+
+        <!-- Response Card -->
+        <div class="ai-response-card" id="aiResponseCard">
+          <div class="ai-rc-header">
+            <span class="ai-rc-icon">🤖</span>
+            <span class="ai-rc-title" id="aiRcTitle">AI Response</span>
+          </div>
+          <div class="ai-rc-body">
+            <div class="ai-rc-section full">
+              <div class="ai-rc-section-label">🔍 Possible Causes</div>
+              <div class="ai-rc-section-content" id="aiRcCauses"></div>
+            </div>
+            <div class="ai-rc-section">
+              <div class="ai-rc-section-label">💰 Estimated Cost</div>
+              <div class="ai-rc-cost" id="aiRcCost"></div>
+            </div>
+            <div class="ai-rc-section">
+              <div class="ai-rc-section-label">🛠 Recommended Service</div>
+              <div class="ai-rc-section-content" id="aiRcService"></div>
+            </div>
+            <div class="ai-rc-section full" id="aiRcTipWrap">
+              <div class="ai-rc-section-label">💡 Quick Tip</div>
+              <div class="ai-rc-section-content" id="aiRcTip"></div>
+            </div>
+          </div>
+          <div class="ai-rc-footer">
+            <span class="ai-rc-disclaimer">⚠️ Always hire a certified professional for safety issues</span>
+            <a href="{% url 'categories' %}" class="ai-rc-book-btn">Book a Pro →</a>
+          </div>
+        </div>
+
+        <!-- Input -->
+        <div class="ai-input-wrap">
+          <div class="ai-input-row">
+            <input class="ai-input" id="aiInput" type="text"
+              placeholder="e.g. Why is my AC leaking water?" autocomplete="off">
+            <button class="ai-send-btn" id="aiSendBtn" onclick="sendAI()">Ask AI →</button>
+          </div>
+          <div class="ai-disclaimer">
+            AI gives general guidance only · Book a SerNest professional for accurate diagnosis
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -476,45 +643,98 @@
 
 {% block extra_js %}
 <script>
-// ── AI ASSISTANT ──
-const AI_RESPONSES = {
-  'ac': {
-    title: 'AC Leaking Water — Possible Causes',
-    body: `Possible causes:\n• Blocked or clogged drain pipe\n• Dirty/frozen evaporator coil\n• Incorrect AC installation angle\n• Low refrigerant level\n\nEstimated repair cost: ₹500 – ₹1,500\nRecommended action: Book an AC technician for diagnosis.`
+const AI_KB = {
+  ac: {
+    title: 'AC Leaking Water',
+    causes: '• Blocked or clogged drain pipe\n• Dirty or frozen evaporator coil\n• Incorrect installation angle\n• Low refrigerant level',
+    cost: '₹500 – ₹1,500',
+    service: '🌡️ AC Cleaning  or  AC Repair',
+    tip: 'Turn off the AC immediately to prevent water damage to your walls and flooring.'
   },
-  'pipe': {
-    title: 'Pipe Repair — Cost Estimate',
-    body: `Estimated costs:\n• Minor leak fix: ₹200 – ₹500\n• Pipe replacement (per meter): ₹300 – ₹800\n• Burst pipe emergency: ₹1,000 – ₹3,000\n\nTime required: 1–3 hours\nRecommendation: Turn off main water supply immediately.`
+  pipe: {
+    title: 'Pipe Repair / Plumbing',
+    causes: '• Corroded or old pipes\n• Loose pipe joints\n• High water pressure\n• Root intrusion (outdoor pipes)',
+    cost: '₹300 – ₹2,500',
+    service: '🔧 Plumbing Repair  or  Pipe Replacement',
+    tip: 'Shut off your main water supply valve immediately to prevent flooding.'
   },
-  'geyser': {
-    title: 'Geyser Installation — Time & Cost',
-    body: `Installation time: 2–4 hours\n\nEstimated costs:\n• Standard installation: ₹500 – ₹1,200\n• With new pipes: ₹1,500 – ₹2,500\n\nTips:\n• Ensure proper earthing\n• Use ISI marked geyser\n• Get annual servicing done`
+  geyser: {
+    title: 'Geyser Installation / Repair',
+    causes: '• Heating element burnout\n• Thermostat failure\n• Sediment/scale buildup\n• Faulty pressure relief valve',
+    cost: '₹500 – ₹2,500',
+    service: '🚿 Geyser Installation  or  Geyser Repair',
+    tip: 'Always ensure proper earthing and use an ISI-marked geyser for safety.'
   },
-  'washing': {
+  washing: {
     title: 'Washing Machine Not Spinning',
-    body: `Possible causes:\n• Unbalanced load inside drum\n• Worn or broken drive belt\n• Faulty motor or capacitor\n• Lid/door switch not engaging\n\nEstimated repair: ₹400 – ₹2,000\nDIY check: Redistribute clothes evenly and retry.`
+    causes: '• Unbalanced load in drum\n• Worn or broken drive belt\n• Faulty motor or capacitor\n• Door/lid switch not engaging',
+    cost: '₹400 – ₹2,000',
+    service: '🌀 Washing Machine Repair',
+    tip: 'Try redistributing clothes evenly inside the drum and run a spin-only cycle first.'
   },
-  'electrical': {
-    title: 'Electrical Short Circuit — Safety First',
-    body: `Immediate steps:\n• Turn off main MCB immediately\n• Do NOT touch bare wires\n• Ventilate the area\n\nPossible causes:\n• Overloaded circuit\n• Damaged wire insulation\n• Water contact with wiring\n\nEstimated fix: ₹500 – ₹3,000\n⚠️ Always hire a certified electrician.`
+  electrical: {
+    title: 'Electrical Short Circuit',
+    causes: '• Overloaded circuit breaker\n• Damaged wire insulation\n• Water contact with wiring\n• Loose connections in switchboard',
+    cost: '₹500 – ₹3,000',
+    service: '⚡ Electrical Repair  or  Wiring Fix',
+    tip: '⚠️ Turn off the main MCB immediately. Do NOT touch bare wires. Always hire a certified electrician.'
   },
-  'fan': {
-    title: 'Fan Making Noise — Diagnosis',
-    body: `Possible causes:\n• Loose blade screws\n• Worn capacitor\n• Bent blade\n• Dry bearings needing lubrication\n\nDIY fix: Tighten screws and apply oil to bearings.\nIf noise persists, cost to repair: ₹200 – ₹600`
+  fan: {
+    title: 'Fan Making Noise',
+    causes: '• Loose blade screws\n• Worn or dry bearings\n• Bent or cracked blade\n• Failing capacitor',
+    cost: '₹200 – ₹600',
+    service: '💨 Fan Repair  or  Fan Servicing',
+    tip: 'Tighten all screws and apply light machine oil to the bearing. If noise continues, book a repair.'
+  },
+  tap: {
+    title: 'Dripping Tap / Faucet',
+    causes: '• Worn rubber washer\n• Damaged O-ring seal\n• Corroded valve seat\n• Loose packing nut',
+    cost: '₹150 – ₹500',
+    service: '🚰 Tap Repair  or  Plumbing Fix',
+    tip: 'A dripping tap wastes ~20 litres per day. A ₹20 washer from hardware store may fix it instantly.'
+  },
+  painting: {
+    title: 'House Painting Cost',
+    causes: '• Wall condition (cracks, dampness)\n• Type of paint (distemper vs emulsion)\n• Room size and number of coats\n• Labour charges vary by city',
+    cost: '₹15,000 – ₹45,000 (2BHK)',
+    service: '🎨 Interior Painting  or  Exterior Painting',
+    tip: 'Always get 3 quotes and ask for Asian Paints or Berger for long-lasting finish.'
+  },
+  pest: {
+    title: 'Pest Control',
+    causes: '• Moisture and damp areas attract pests\n• Food left uncovered\n• Cracks and gaps in walls\n• Warm weather increases activity',
+    cost: '₹800 – ₹3,000',
+    service: '🦟 Pest Control  or  Termite Treatment',
+    tip: 'Seal all cracks and fix water leaks before pest treatment for best results.'
+  },
+  cleaning: {
+    title: 'Deep Home Cleaning',
+    causes: '• Accumulated dust and grime\n• Kitchen grease and stains\n• Bathroom scale and mold\n• Post-renovation cleaning needed',
+    cost: '₹1,500 – ₹5,000',
+    service: '🧹 Deep Cleaning  or  Sofa/Carpet Cleaning',
+    tip: 'Book deep cleaning quarterly for a healthier home environment.'
   }
 };
 
 function getAIResponse(question) {
   const q = question.toLowerCase();
-  if (q.includes('ac') || q.includes('leak') || q.includes('air condition')) return AI_RESPONSES.ac;
-  if (q.includes('pipe') || q.includes('plumb') || q.includes('water')) return AI_RESPONSES.pipe;
-  if (q.includes('geyser') || q.includes('heater') || q.includes('install')) return AI_RESPONSES.geyser;
-  if (q.includes('wash') || q.includes('spin') || q.includes('machine')) return AI_RESPONSES.washing;
-  if (q.includes('electric') || q.includes('circuit') || q.includes('short')) return AI_RESPONSES.electrical;
-  if (q.includes('fan') || q.includes('noise') || q.includes('sound')) return AI_RESPONSES.fan;
+  if (q.includes('ac') || q.includes('air condition') || q.includes('cool'))         return AI_KB.ac;
+  if (q.includes('pipe') || q.includes('plumb') || q.includes('drain'))              return AI_KB.pipe;
+  if (q.includes('geyser') || q.includes('heater') || q.includes('hot water'))       return AI_KB.geyser;
+  if (q.includes('wash') || q.includes('spin') || q.includes('machine'))             return AI_KB.washing;
+  if (q.includes('electric') || q.includes('circuit') || q.includes('switch'))       return AI_KB.electrical;
+  if (q.includes('fan') || q.includes('noise') || q.includes('sound'))               return AI_KB.fan;
+  if (q.includes('tap') || q.includes('drip') || q.includes('faucet'))               return AI_KB.tap;
+  if (q.includes('paint') || q.includes('colour') || q.includes('color'))            return AI_KB.painting;
+  if (q.includes('pest') || q.includes('cockroach') || q.includes('mosquito'))       return AI_KB.pest;
+  if (q.includes('clean') || q.includes('dust') || q.includes('sofa'))               return AI_KB.cleaning;
+
   return {
-    title: 'General Service Advice',
-    body: `For your query: "${question}"\n\nOur AI suggests:\n• Describe the issue in more detail for better diagnosis\n• Check if the appliance is under warranty\n• Book a professional inspection from SerNest\n\nEstimated diagnosis cost: ₹200 – ₹500`
+    title: 'Home Service Query',
+    causes: '• Issue not recognized — try rephrasing\n• Use keywords like: AC, pipe, fan, geyser\n• Or tap a quick question chip above',
+    cost: '₹200 – ₹500',
+    service: '🏠 Book a Home Inspection',
+    tip: 'Describe the appliance or problem clearly (e.g. "AC is dripping", "fan making noise") for a precise answer.'
   };
 }
 
@@ -524,24 +744,43 @@ function askAI(question) {
 }
 
 function sendAI() {
-  const input = document.getElementById('aiInput');
-  const q = input.value.trim();
+  const input   = document.getElementById('aiInput');
+  const q       = input.value.trim();
   if (!q) return;
 
   const thinking = document.getElementById('aiThinking');
-  const response = document.getElementById('aiResponse');
-  const body     = document.getElementById('aiResponseBody');
+  const card     = document.getElementById('aiResponseCard');
+  const sendBtn  = document.getElementById('aiSendBtn');
 
+  // Show thinking
+  card.classList.remove('show');
   thinking.classList.add('show');
-  response.classList.remove('show');
+  sendBtn.disabled = true;
+  sendBtn.textContent = '…';
 
   setTimeout(() => {
     thinking.classList.remove('show');
+    sendBtn.disabled = false;
+    sendBtn.textContent = 'Ask AI →';
+
     const r = getAIResponse(q);
-    body.innerHTML = '<strong>' + r.title + '</strong><br><br>' +
-      r.body.replace(/\n/g, '<br>').replace(/•/g, '&nbsp;&nbsp;•');
-    response.classList.add('show');
-  }, 1000);
+
+    // Fill card sections
+    document.getElementById('aiRcTitle').textContent   = '🤖 ' + r.title;
+    document.getElementById('aiRcCauses').innerHTML    = r.causes.replace(/\n/g, '<br>').replace(/•/g, '<span style="color:var(--accent2)">•</span>');
+    document.getElementById('aiRcCost').textContent    = r.cost;
+    document.getElementById('aiRcService').innerHTML   = r.service;
+    document.getElementById('aiRcTip').textContent     = r.tip;
+
+    card.classList.add('show');
+    card.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  }, 900);
+}
+
+function clearAI() {
+  document.getElementById('aiInput').value = '';
+  document.getElementById('aiResponseCard').classList.remove('show');
+  document.getElementById('aiThinking').classList.remove('show');
 }
 
 document.getElementById('aiInput').addEventListener('keydown', e => {

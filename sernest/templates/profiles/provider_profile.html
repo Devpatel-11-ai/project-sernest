@@ -314,17 +314,31 @@
           <div class="photo-upload-area">
             <div class="photo-preview" id="photoPreview">
               {% if provider and provider.profile_image %}
-                <img src="{{ provider.profile_image.url }}" alt="">
+              <img src="{{ provider.profile_image.url }}" alt="">
               {% else %}
-                {{ request.user.first_name|first|upper|default:"P" }}
+              <span id="photoInitial">{{ request.user.first_name|first|upper|default:"P" }}</span>
               {% endif %}
             </div>
             <div>
               <label class="photo-upload-btn" for="photoInput">📷 Upload Photo</label>
               <input type="file" id="photoInput" name="profile_image" accept="image/*" style="display:none" onchange="previewPhoto(this)">
-              <div class="photo-hint" style="margin-top:15px">JPG, PNG or WEBP · Max 2MB * Shown to Customer</div>
-            </div>
-          </div>
+              <input type="hidden" name="remove_photo" id="removePhotoInput" value="">
+              {% if provider and provider.profile_image %}
+              <button type="button" class="photo-upload-btn" id="removePhotoBtn"
+              onclick="removePhoto()"
+              style="margin-left:8px;background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3);color:#f87171">
+              🗑️ Remove Photo
+            </button>
+            {% else %}
+            <button type="button" class="photo-upload-btn" id="removePhotoBtn"
+            onclick="removePhoto()"
+            style="margin-left:8px;background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3);color:#f87171;display:none">
+            🗑️ Remove Photo
+          </button>
+          {% endif %}
+          <div class="photo-hint" style="margin-top:10px">JPG, PNG or WEBP · Max 2MB · Shown to Customer</div>
+        </div>
+      </div>
 
           <div class="form-grid">
             <div class="f-group">
@@ -640,11 +654,23 @@ function previewPhoto(input) {
     reader.onload = e => {
       const p = document.getElementById('photoPreview');
       p.innerHTML = '<img src="' + e.target.result + '" alt="preview">';
+      document.getElementById('removePhotoInput').value = '';
+      document.getElementById('removePhotoBtn').style.display = 'inline-flex';
       const sa = document.getElementById('sidebarAvatar');
       if (sa) sa.innerHTML = '<img src="' + e.target.result + '" alt="preview" style="width:100%;height:100%;object-fit:cover">';
     };
     reader.readAsDataURL(input.files[0]);
   }
+}
+
+function removePhoto() {
+  const initial = '{{ request.user.first_name|first|upper|default:"P" }}';
+  document.getElementById('photoPreview').innerHTML = '<span id="photoInitial">' + initial + '</span>';
+  document.getElementById('removePhotoInput').value = '1';
+  document.getElementById('removePhotoBtn').style.display = 'none';
+  document.getElementById('photoInput').value = '';
+  const sa = document.getElementById('sidebarAvatar');
+  if (sa) sa.innerHTML = initial;
 }
 
 function toggleDay(el) { el.classList.toggle('selected'); }

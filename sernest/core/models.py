@@ -121,3 +121,39 @@ class ServiceProvider(models.Model):
 
     def __str__(self):
         return self.name
+
+# ══════════════════════════════════════════════════════════════
+#  ADD THIS TO THE BOTTOM OF  core/models.py
+# ══════════════════════════════════════════════════════════════
+
+class Booking(models.Model):
+    STATUS_CHOICES = [
+        ('pending',    'Pending'),
+        ('confirmed',  'Confirmed'),
+        ('in_progress','In Progress'),
+        ('completed',  'Completed'),
+        ('cancelled',  'Cancelled'),
+    ]
+
+    user     = models.ForeignKey(User,            on_delete=models.CASCADE, related_name='bookings')
+    provider = models.ForeignKey(ServiceProvider, on_delete=models.SET_NULL, null=True, blank=True, related_name='bookings')
+    category = models.ForeignKey(Category,        on_delete=models.SET_NULL, null=True, blank=True)
+
+    service_name  = models.CharField(max_length=200)
+    description   = models.TextField(blank=True, default='')
+    address       = models.CharField(max_length=300, blank=True, default='')
+    city          = models.CharField(max_length=100, blank=True, default='')
+    scheduled_date= models.DateField(null=True, blank=True)
+    scheduled_time= models.TimeField(null=True, blank=True)
+    status        = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    amount        = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    notes         = models.TextField(blank=True, default='')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Booking #{self.id} – {self.service_name} ({self.status})"
+
+    class Meta:
+        ordering = ['-created_at']
