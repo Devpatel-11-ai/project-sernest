@@ -7,6 +7,12 @@ from django.http import JsonResponse
 from django.core.mail import send_mail
 from django.conf import settings
 from .google_sheet import save_contact
+import gspread
+from google.oauth2.service_account import Credentials
+from datetime import datetime
+import os
+
+
 
 
 # ══════════════════════════════════════
@@ -240,32 +246,60 @@ def contact(request):
         email   = request.POST.get('email', '').strip()
         subject = request.POST.get('subject', '').strip()
         message = request.POST.get('message', '').strip()
+        date    = datetime.now().strftime('%d-%m-%Y %H:%M')
 
+        if not all([name, email, subject, message]):
+            messages.error(request, '❌ Please fill in all fields.')
+            return render(request, 'contact.html')
+
+        # ✅ Google Sheet
         try:
             save_contact(name, email, subject, message)
+            print("✅ Sheet saved!")
+        except Exception as e:
+            import traceback
+            print("❌ SHEET ERROR:", traceback.format_exc())
 
+        # ✅ Email to user
+        try:
             send_mail(
-                subject=f'Thanks for contacting SerNest',
+                subject=f'We received your message — {subject}',
                 message=f"""Hi {name},
 
-Thank you for contacting SerNest.
+Thank you for contacting SerNest! We received your message.
 
-We received your message:
-"{message}"
-
-Our team will respond shortly.
+Subject : {subject}
+Message : {message}
+Date    : {date}
 
 Best regards,
-SerNest Team""",
+SerNest Team
+""",
                 from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[email],
                 fail_silently=False,
             )
-            messages.success(request, '✅ Your message was sent successfully!')
-
+            print("✅ User email sent!")
         except Exception as e:
-            print(e)
-            messages.error(request, '❌ Message failed to send. Please try again.')
+            import traceback
+            print("❌ EMAIL ERROR:", traceback.format_exc())
+
+        # ✅ Email to admin
+        try:
+            send_mail(
+                subject=f'New Contact: {subject}',
+                message=f"Name: {name}\nEmail: {email}\nSubject: {subject}\nMessage: {message}\nDate: {date}",
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[settings.EMAIL_HOST_USER],
+                fail_silently=False,
+            )
+            print("✅ Admin email sent!")
+        except Exception as e:
+            import traceback
+            print("❌ ADMIN EMAIL ERROR:", traceback.format_exc())
+
+        messages.success(request, f'✅ Thank you {name}! Message sent successfully.')
+        return redirect('contact')
 
     return render(request, 'contact.html')
 

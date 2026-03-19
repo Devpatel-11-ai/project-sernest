@@ -144,3 +144,12 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+# Session expires when browser closes (no persistent login)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# Session cookie age - 1 hour only (not 2 weeks default)
+SESSION_COOKIE_AGE = 3600  # seconds
+
+# Don't save session if not modified
+SESSION_SAVE_EVERY_REQUEST = False

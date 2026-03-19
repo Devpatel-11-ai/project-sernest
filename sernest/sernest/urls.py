@@ -19,6 +19,7 @@ from django.urls import path
 from django.urls import include
 from . import views
 from django.conf import settings
+from core import views as core_views
 from django.conf.urls.static import static
 # from core import views
 
@@ -27,7 +28,7 @@ urlpatterns = [
     path('', include('core.urls')),
     path('categories/', views.categories, name='categories'),
     path('about/', views.about, name='about'),
-    path('contact/', views.contact, name='contact'),
+    path('contact/', core_views.contact, name='contact'),
     path('register/', views.register, name='register'),
     path('provider_register/', views.provider_register, name='provider_register'),
     path('home/', views.home, name='home'),

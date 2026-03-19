@@ -47,52 +47,68 @@
       </h3>
       
       
-      <form method="POST" >
-        {% csrf_token %}
-        
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
-          
-          <div>
+      <!-- Messages display -->
+{% if messages %}
+    {% for message in messages %}
+        {% if 'error' in message.tags %}
+            <div style="padding:14px 18px;margin-bottom:18px;border-radius:10px;font-family:'Syne',sans-serif;font-size:0.9rem;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#f87171">{{ message }}</div>
+        {% else %}
+            <div style="padding:14px 18px;margin-bottom:18px;border-radius:10px;font-family:'Syne',sans-serif;font-size:0.9rem;background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.4);color:#a5b4fc">{{ message }}</div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+<!-- Contact Form -->
+<form method="POST" action="{% url 'contact' %}">
+    {% csrf_token %}
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+        <div>
             <label style="display:block;font-size:0.8rem;color:rgba(240,244,255,0.5);margin-bottom:6px">Name</label>
-            <input type="text" id="name" name="name"
-            class="search-input"
-            placeholder="Your name"
-            style="width:100%;padding:12px 14px"
-            required>
-          </div>
-          <div>
+            <input type="text" name="name"
+                   class="search-input"
+                   placeholder="Your name"
+                   value="{{ request.POST.name }}"
+                   style="width:100%;padding:12px 14px"
+                   required>
+        </div>
+        <div>
             <label style="display:block;font-size:0.8rem;color:rgba(240,244,255,0.5);margin-bottom:6px">Email</label>
-            <input type="email" id="email" name="email"
-            class="search-input"
-            placeholder="you@example.com"
-            style="width:100%;padding:12px 14px"
-            required>
-          </div>
+            <input type="email" name="email"
+                   class="search-input"
+                   placeholder="you@example.com"
+                   value="{{ request.POST.email }}"
+                   style="width:100%;padding:12px 14px"
+                   required>
         </div>
-        <div style="margin-bottom:14px">
-          <label style="display:block;font-size:0.8rem;color:rgba(240,244,255,0.5);margin-bottom:6px">Subject</label>
-          <input type="text" id="subject" name="subject"
-          class="search-input"
-          placeholder="How can we help?"
-          style="width:100%;padding:12px 16px"
-          required>
-        </div>
-        <div style="margin-bottom:24px">
-          <label style="display:block;font-size:0.8rem;color:rgba(240,244,255,0.5);margin-bottom:6px">Message</label>
-          <textarea id="message" name="message"
-          class="search-input"
-          rows="5"
-          placeholder="Tell us more..."
-          style="width:100%;padding:12px 16px;resize:vertical;font-family:inherit"
-          required></textarea>
-        </div>
-        
-        <button type="submit"
-        class="btn-primary btn-large"
-        style="width:100%;text-align:center;border-radius:12px">
-        Send Message 
-      </button>
-    </form>
+    </div>
+
+    <div style="margin-bottom:14px">
+        <label style="display:block;font-size:0.8rem;color:rgba(240,244,255,0.5);margin-bottom:6px">Subject</label>
+        <input type="text" name="subject"
+               class="search-input"
+               placeholder="How can we help?"
+               value="{{ request.POST.subject }}"
+               style="width:100%;padding:12px 16px"
+               required>
+    </div>
+
+    <div style="margin-bottom:24px">
+        <label style="display:block;font-size:0.8rem;color:rgba(240,244,255,0.5);margin-bottom:6px">Message</label>
+        <textarea name="message"
+                  class="search-input"
+                  rows="5"
+                  placeholder="Tell us more..."
+                  style="width:100%;padding:12px 16px;resize:vertical;font-family:inherit"
+                  required>{{ request.POST.message }}</textarea>
+    </div>
+
+    <button type="submit"
+            class="btn-primary btn-large"
+            style="width:100%;text-align:center;border-radius:12px">
+        Send Message
+    </button>
+</form>
     {% if messages %}
     {% for message in messages %}
     <div class = "message-box">
