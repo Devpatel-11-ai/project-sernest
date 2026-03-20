@@ -42,4 +42,17 @@ urlpatterns = [
   path('dashboard/admin/bookings/<int:booking_id>/edit/',   views.admin_booking_edit,   name='admin_booking_edit'),
   path('dashboard/admin/bookings/<int:booking_id>/delete/', views.admin_booking_delete, name='admin_booking_delete'),
   
+
+  # ══════════════════════════════════════════════════════════════
+  #  ADD THESE LINES to core/urls.py urlpatterns list
+  # ══════════════════════════════════════════════════════════════
+  
+  # --- Booking URLs ---
+  path('booking/create/',                          views.create_booking,             name='create_booking'),
+  path('booking/slots/',                           views.get_slot_availability,      name='slot_availability'),
+  path('booking/<int:booking_id>/accept/',         views.provider_accept_booking,    name='provider_accept_booking'),
+  path('booking/<int:booking_id>/reject/',         views.provider_reject_booking,    name='provider_reject_booking'),
+  path('booking/<int:booking_id>/complete/',       views.provider_complete_booking,  name='provider_complete_booking'),
+  path('booking/<int:booking_id>/cancel/',         views.user_cancel_booking,        name='user_cancel_booking'),
+ 
   ]

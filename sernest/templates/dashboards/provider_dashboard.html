@@ -173,23 +173,39 @@
     <!-- Service Requests -->
     <div id="requests" style="margin-bottom:28px">
       <div class="sect-head">
-        <div class="sect-title">📋 Service Requests</div>
-        <a href="#" class="sect-link">View All →</a>
+        <div class="sect-title">📋 Pending Requests</div>
+        <span style="font-size:.78rem;color:var(--text-muted);font-family:'Poppins',sans-serif">
+          Max 5 bookings per time slot
+        </span>
       </div>
+ 
       {% if pending_requests %}
         {% for req in pending_requests %}
         <div class="req-card">
-          <div class="req-avatar">{{ req.customer_name|first|upper|default:"C" }}</div>
+          <div class="req-avatar">{{ req.user.first_name|first|upper|default:"C" }}</div>
           <div class="req-info">
-            <div class="req-customer">{{ req.customer_name }}</div>
-            <div class="req-service">{{ req.service }}</div>
-            <div class="req-meta">📍 {{ req.location }} &nbsp;·&nbsp; 📅 {{ req.date }}</div>
+            <div class="req-customer">{{ req.user.first_name }} {{ req.user.last_name }}</div>
+            <div class="req-service">{{ req.service_name }} · {{ req.category.name|default:"Service" }}</div>
+            <div class="req-meta">
+              📅 {{ req.scheduled_date }} &nbsp;·&nbsp;
+              🕐 {{ req.scheduled_time }} &nbsp;·&nbsp;
+              📍 {{ req.city|default:"–" }}
+              {% if req.time_slot %}
+              &nbsp;·&nbsp; 🎫 Slot: {{ req.time_slot.booked_count }}/5
+              {% endif %}
+            </div>
+            {% if req.description %}
+            <div class="req-meta" style="margin-top:3px;color:rgba(255,255,255,.5)">
+              💬 {{ req.description|truncatechars:60 }}
+            </div>
+            {% endif %}
           </div>
-          <span class="status-badge s-pending">🟡 Pending</span>
+          <span class="status-badge s-pending">⏳ Pending</span>
           <div class="req-actions">
-            <button class="req-btn req-btn-accept" onclick="handleRequest(this,'accept')">✓ Accept</button>
-            <button class="req-btn req-btn-reject" onclick="handleRequest(this,'reject')">✕ Reject</button>
-            <button class="req-btn req-btn-view">Details</button>
+            <a href="{% url 'core:provider_accept_booking' req.id %}"
+               class="req-btn req-btn-accept">✓ Accept</a>
+            <a href="{% url 'core:provider_reject_booking' req.id %}"
+               class="req-btn req-btn-reject">✕ Reject</a>
           </div>
         </div>
         {% endfor %}
@@ -198,6 +214,40 @@
         <div class="ei">📋</div>
         <p>No pending requests right now.</p>
       </div>
+      {% endif %}
+ 
+      <!-- Accepted Bookings -->
+      {% if accepted_bookings %}
+      <div class="sect-head" style="margin-top:28px">
+        <div class="sect-title">✅ Accepted Bookings</div>
+      </div>
+      {% for bk in accepted_bookings %}
+      <div class="req-card" style="border-color:rgba(34,197,94,.2)">
+        <div class="req-avatar" style="background:linear-gradient(135deg,#059669,#34d399)">
+          {{ bk.user.first_name|first|upper|default:"C" }}
+        </div>
+        <div class="req-info">
+          <div class="req-customer">{{ bk.user.first_name }} {{ bk.user.last_name }}</div>
+          <div class="req-service">{{ bk.service_name }}</div>
+          <div class="req-meta">📅 {{ bk.scheduled_date }} · 🕐 {{ bk.scheduled_time }}</div>
+          <!-- Pricing breakdown -->
+          <div class="req-meta" style="margin-top:5px">
+            <span style="color:rgba(255,255,255,.5)">Estimate: ₹{{ bk.estimate_amount }}</span>
+            &nbsp;+&nbsp;
+            <span style="color:rgba(255,255,255,.4)">Margin: ₹{{ bk.company_margin }}</span>
+            &nbsp;+&nbsp;
+            <span style="color:rgba(255,255,255,.4)">GST: ₹{{ bk.gst_amount }}</span>
+            &nbsp;=&nbsp;
+            <span style="color:#4ade80;font-weight:700">Total: ₹{{ bk.total_amount }}</span>
+          </div>
+        </div>
+        <span class="status-badge s-completed">✅ Accepted</span>
+        <div class="req-actions">
+          <a href="{% url 'core:provider_complete_booking' bk.id %}"
+             class="req-btn req-btn-accept">🎉 Mark Done</a>
+        </div>
+      </div>
+      {% endfor %}
       {% endif %}
     </div>
 

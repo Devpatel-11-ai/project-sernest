@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Reject Booking #{{ booking.id }} — SerNest{% endblock %}
+
+{% block extra_css %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+:root{--bg:#07080f;--card:#0f1018;--card2:#13141d;--border:rgba(255,255,255,0.07);--red:#ef4444;--text:#f0f0f8;--muted:#6b6d82}
+body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;padding:90px 20px 60px}
+.wrap{max-width:520px;margin:0 auto}
+.back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:.83rem;margin-bottom:24px;transition:color .2s}
+.back-link:hover{color:var(--text)}
+.page-title{font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:6px}
+.page-sub{font-size:.83rem;color:var(--muted);margin-bottom:28px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:20px}
+.card-head{padding:16px 20px;border-bottom:1px solid var(--border);background:var(--card2);font-size:.9rem;font-weight:700;color:var(--text)}
+.card-body{padding:20px}
+.f-group{margin-bottom:16px}
+.f-label{display:block;font-size:.76rem;font-weight:600;color:rgba(255,255,255,.4);margin-bottom:7px;letter-spacing:.03em}
+.f-textarea{width:100%;background:#0b0c14;border:1px solid var(--border);color:var(--text);padding:11px 14px;border-radius:10px;font-size:.87rem;font-family:'Poppins',sans-serif;outline:none;resize:vertical;min-height:90px;transition:border-color .2s}
+.f-textarea:focus{border-color:var(--red)}
+.btn-reject{width:100%;padding:13px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:#f87171;border-radius:10px;font-size:.92rem;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .2s}
+.btn-reject:hover{background:rgba(239,68,68,.22)}
+.warn-box{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:13px 15px;font-size:.82rem;color:#fcd34d;line-height:1.6;margin-bottom:18px}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrap">
+  <a href="{% url 'core:provider_dashboard' %}" class="back-link">← Back to Dashboard</a>
+  <div class="page-title">Reject Booking #{{ booking.id }}</div>
+  <div class="page-sub">Please provide a reason for rejecting this booking.</div>
+
+  <div class="warn-box">
+    ⚠️ Rejecting this booking will free the time slot and notify the customer.
+    The customer will be able to re-book at another time slot.
+  </div>
+
+  <div class="card">
+    <div class="card-head">❌ Reject Booking</div>
+    <div class="card-body">
+      <p style="font-size:.84rem;color:var(--muted);margin-bottom:16px">
+        <strong style="color:var(--text)">{{ booking.service_name }}</strong> ·
+        {{ booking.user.first_name }} {{ booking.user.last_name }} ·
+        {{ booking.scheduled_date }} {{ booking.scheduled_time }}
+      </p>
+      <form method="post">
+        {% csrf_token %}
+        <div class="f-group">
+          <label class="f-label">Reason for Rejection (optional)</label>
+          <textarea class="f-textarea" name="provider_notes"
+            placeholder="e.g. Not available on this date, please reschedule."></textarea>
+        </div>
+        <button type="submit" class="btn-reject">✕ Confirm Rejection</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

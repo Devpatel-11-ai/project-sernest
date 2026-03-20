@@ -129,7 +129,7 @@ select.search-input{cursor:pointer}
                 <td class="name-cell">{{ b.service_name }}</td>
                 <td>{{ b.provider.name|default:"–" }}</td>
                 <td class="mono">{% if b.scheduled_date %}{{ b.scheduled_date|date:"d M Y" }}{% else %}–{% endif %}</td>
-                <td style="color:var(--green);font-weight:700;font-family:var(--mono)">₹{{ b.amount }}</td>
+                <td style="color:var(--green);font-weight:700;font-family:var(--mono)">{% if b.total_amount > 0 %}₹{{ b.total_amount }}{% else %}–{% endif %}</td>
                 <td>
                   <span class="badge b-{{ b.status }}">
                     {% if b.status == 'pending' %}⏳{% elif b.status == 'confirmed' %}✅{% elif b.status == 'completed' %}🎉{% elif b.status == 'cancelled' %}❌{% else %}🔄{% endif %}

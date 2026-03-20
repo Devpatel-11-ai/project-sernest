@@ -546,26 +546,40 @@
           <tbody>
             {% for b in bookings %}
             <tr>
-              <td>{{ b.service }}</td>
-              <td>{{ b.provider }}</td>
-              <td>{{ b.date }}</td>
-              <td>₹{{ b.amount }}</td>
+              <td>{{ b.service_name }}</td>
+              <td>{{ b.provider.name|default:"–" }}</td>
+              <td>{{ b.scheduled_date|default:"–" }}</td>
+              <td>
+                {% if b.total_amount > 0 %}
+                  <span style="color:#4ade80;font-weight:600">₹{{ b.total_amount }}</span>
+                {% else %}
+                  <span style="color:var(--text-muted);font-size:.78rem">Pending estimate</span>
+                {% endif %}
+              </td>
               <td>
                 <span class="status-badge
-                  {% if b.status == 'Pending' %}s-pending
-                  {% elif b.status == 'Confirmed' %}s-confirmed
-                  {% elif b.status == 'On the Way' %}s-onway
-                  {% elif b.status == 'Completed' %}s-completed
+                  {% if b.status == 'pending' %}s-pending
+                  {% elif b.status == 'accepted' %}s-confirmed
+                  {% elif b.status == 'in_progress' %}s-onway
+                  {% elif b.status == 'completed' %}s-completed
                   {% else %}s-cancelled{% endif %}">
-                  {% if b.status == 'Pending' %}🟡
-                  {% elif b.status == 'Confirmed' %}🔵
-                  {% elif b.status == 'On the Way' %}🟣
-                  {% elif b.status == 'Completed' %}🟢
-                  {% else %}🔴{% endif %}
-                  {{ b.status }}
+                  {% if b.status == 'pending' %}⏳ Pending
+                  {% elif b.status == 'accepted' %}✅ Accepted
+                  {% elif b.status == 'in_progress' %}🔄 In Progress
+                  {% elif b.status == 'completed' %}🎉 Completed
+                  {% elif b.status == 'rejected' %}❌ Rejected
+                  {% else %}🔴 Cancelled{% endif %}
                 </span>
               </td>
-              <td><button class="mini-btn mini-btn-ghost">Details</button></td>
+              <td>
+                {% if b.status == 'pending' or b.status == 'accepted' %}
+                <a href="{% url 'core:user_cancel_booking' b.id %}"
+                   class="mini-btn mini-btn-ghost"
+                   onclick="return confirm('Cancel booking #{{ b.id }}?')">Cancel</a>
+                {% else %}
+                <button class="mini-btn mini-btn-ghost" disabled style="opacity:.4">Done</button>
+                {% endif %}
+              </td>
             </tr>
             {% endfor %}
           </tbody>

@@ -14,6 +14,10 @@ import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime
 import os
+import json
+from decimal import Decimal
+from django.views.decorators.http import require_POST
+from django.utils.decorators import method_decorator
 
 
 
@@ -316,85 +320,6 @@ SerNest Team
 
 from django.contrib.auth.decorators import login_required
 
-
-# ──────────────────────────────────────────
-#  USER DASHBOARD
-# ──────────────────────────────────────────
-@login_required
-def user_dashboard(request):
-    from .models import Category
-    quick_categories = Category.objects.all()[:8]
-
-    context = {
-        'active_bookings':    0,   # Replace with Booking.objects.filter(user=request.user, status='active').count()
-        'completed_bookings': 0,   # Replace with Booking.objects.filter(user=request.user, status='completed').count()
-        'saved_providers':    0,   # Replace with FavoriteProvider.objects.filter(user=request.user).count()
-        'wallet_balance':     0,   # Replace with request.user.wallet_balance if you add that field
-        'bookings':           [],  # Replace with Booking.objects.filter(user=request.user).order_by('-date')[:10]
-        'favorite_providers': [],  # Replace with FavoriteProvider.objects.filter(user=request.user)
-        'quick_categories':   quick_categories,
-    }
-    return render(request, 'dashboards/user_dashboard.html', context)
-
-
-# ──────────────────────────────────────────
-#  PROVIDER DASHBOARD
-# ──────────────────────────────────────────
-@login_required
-def provider_dashboard(request):
-    from .models import ServiceProvider
-
-    # Get the provider profile for logged in user
-    try:
-        provider = ServiceProvider.objects.get(email=request.user.email)
-    except ServiceProvider.DoesNotExist:
-        provider = None
-
-    context = {
-        'provider':         provider,
-        'todays_bookings':  0,   # Replace with actual Booking queryset
-        'pending_requests': [],  # Replace with Booking.objects.filter(provider=provider, status='pending')
-        'completed_jobs':   0,
-        'total_earnings':   0,
-        'today_earnings':   0,
-        'week_earnings':    0,
-        'month_earnings':   0,
-        # Weekly chart data (replace with real aggregation)
-        'mon_earnings': 1200,
-        'tue_earnings': 2100,
-        'wed_earnings': 800,
-        'thu_earnings': 1800,
-        'fri_earnings': 2500,
-        'sat_earnings': 3200,
-        'sun_earnings': 900,
-    }
-    return render(request, 'dashboards/provider_dashboard.html', context)
-
-
-# ──────────────────────────────────────────
-#  ADMIN DASHBOARD
-# ──────────────────────────────────────────
-@login_required
-def admin_dashboard(request):
-    # Only allow admin role
-    if request.user.role != 'admin':
-        from django.shortcuts import redirect
-        return redirect('home')
-
-    from .models import User, ServiceProvider
-
-    context = {
-        'total_users':     User.objects.filter(role='user').count(),
-        'total_providers': ServiceProvider.objects.count(),
-        'total_bookings':  0,      # Replace with Booking.objects.count()
-        'total_revenue':   0,      # Replace with real revenue sum
-        'all_users':       User.objects.filter(role='user').order_by('-created_at')[:20],
-        'all_providers':   ServiceProvider.objects.select_related('category').order_by('-id')[:20],
-        'all_bookings':    [],     # Replace with Booking.objects.all().order_by('-date')[:20]
-    }
-    return render(request, 'dashboards/admin_dashboard.html', context)
-
-
 # ──────────────────────────────────────────
 #  USER PROFILE
 # ──────────────────────────────────────────
@@ -503,7 +428,7 @@ def admin_dashboard(request):
     total_users     = User.objects.filter(role='user').count()
     total_providers = ServiceProvider.objects.count()
     total_bookings  = Booking.objects.count()
-    total_revenue   = Booking.objects.filter(status='completed').aggregate(t=Sum('amount'))['t'] or 0
+    total_revenue = Booking.objects.filter(status='completed').aggregate(t=Sum('total_amount'))['t'] or 0
     pending_bookings = Booking.objects.filter(status='pending').count()
     active_providers = ServiceProvider.objects.filter(available=True).count()
  
@@ -519,7 +444,7 @@ def admin_dashboard(request):
         rev = Booking.objects.filter(
             status='completed',
             updated_at__date=day
-        ).aggregate(t=Sum('amount'))['t'] or 0
+        ).aggregate(t=Sum('total_amount'))['t'] or 0
         weekly_data.append({'day': day.strftime('%a'), 'revenue': float(rev)})
  
     context = {
@@ -598,7 +523,10 @@ def admin_bookings(request):
     from .models import Booking
     query  = request.GET.get('q', '')
     status = request.GET.get('status', '')
-    bookings = Booking.objects.select_related('user', 'provider', 'category').order_by('-created_at')
+    bookings = Booking.objects.select_related(
+        'user', 'provider', 'category'
+    ).order_by('-created_at')
+ 
     if query:
         bookings = bookings.filter(
             Q(service_name__icontains=query) |
@@ -607,11 +535,19 @@ def admin_bookings(request):
         )
     if status:
         bookings = bookings.filter(status=status)
+ 
     return render(request, 'dashboards/admin_bookings.html', {
         'bookings': bookings,
         'query': query,
         'status_filter': status,
-        'status_choices': [('pending','Pending'),('confirmed','Confirmed'),('in_progress','In Progress'),('completed','Completed'),('cancelled','Cancelled')],
+        'status_choices': [
+            ('pending',     'Pending'),
+            ('accepted',    'Accepted'),
+            ('in_progress', 'In Progress'),
+            ('completed',   'Completed'),
+            ('cancelled',   'Cancelled'),
+            ('rejected',    'Rejected'),
+        ],
     })
  
  
@@ -625,12 +561,20 @@ def admin_booking_edit(request, booking_id):
     if request.method == 'POST':
         booking.service_name   = request.POST.get('service_name', booking.service_name)
         booking.status         = request.POST.get('status', booking.status)
-        booking.amount         = request.POST.get('amount', booking.amount)
         booking.address        = request.POST.get('address', booking.address)
         booking.city           = request.POST.get('city', booking.city)
         booking.scheduled_date = request.POST.get('scheduled_date') or None
-        booking.scheduled_time = request.POST.get('scheduled_time') or None
+        booking.scheduled_time = request.POST.get('scheduled_time') or ''
         booking.notes          = request.POST.get('notes', booking.notes)
+ 
+        # Handle estimate — recalculate pricing
+        estimate = request.POST.get('estimate_amount')
+        if estimate:
+            try:
+                booking.calculate_pricing(float(estimate))
+            except Exception:
+                pass
+ 
         provider_id = request.POST.get('provider')
         if provider_id:
             booking.provider = get_object_or_404(ServiceProvider, id=provider_id)
@@ -639,10 +583,18 @@ def admin_booking_edit(request, booking_id):
         return redirect('core:admin_bookings')
  
     return render(request, 'dashboards/admin_booking_edit.html', {
-        'booking': booking,
+        'booking':  booking,
         'providers': providers,
-        'status_choices': [('pending','Pending'),('confirmed','Confirmed'),('in_progress','In Progress'),('completed','Completed'),('cancelled','Cancelled')],
+        'status_choices': [
+            ('pending',     'Pending'),
+            ('accepted',    'Accepted'),
+            ('in_progress', 'In Progress'),
+            ('completed',   'Completed'),
+            ('cancelled',   'Cancelled'),
+            ('rejected',    'Rejected'),
+        ],
     })
+ 
  
  
 @login_required
@@ -653,4 +605,304 @@ def admin_booking_delete(request, booking_id):
     booking.delete()
     messages.success(request, f'✅ Booking #{booking_id} deleted.')
     return redirect('core:admin_bookings')
+ 
+
+def get_slot_availability(request):
+    """
+    AJAX endpoint — returns slot status for a provider on a date.
+    GET params: provider_id, date (YYYY-MM-DD)
+    """
+    from .models import TimeSlot, ServiceProvider
+ 
+    provider_id = request.GET.get('provider_id')
+    date        = request.GET.get('date')
+ 
+    if not provider_id or not date:
+        return JsonResponse({'error': 'Missing params'}, status=400)
+ 
+    try:
+        provider = ServiceProvider.objects.get(id=provider_id)
+    except ServiceProvider.DoesNotExist:
+        return JsonResponse({'error': 'Provider not found'}, status=404)
+ 
+    ALL_SLOTS = [
+        ('09:00', '9–10 AM'),
+        ('10:00', '10–11 AM'),
+        ('11:00', '11 AM–12 PM'),
+        ('12:00', '12–1 PM'),
+        ('13:00', '1–2 PM'),
+        ('14:00', '2–3 PM'),
+        ('15:00', '3–4 PM'),
+        ('16:00', '4–5 PM'),
+        ('17:00', '5–6 PM'),
+    ]
+ 
+    # Fetch existing slot records for this provider/date
+    existing = {
+        ts.slot_time: ts
+        for ts in TimeSlot.objects.filter(provider=provider, date=date)
+    }
+ 
+    slots = []
+    for slot_value, slot_label in ALL_SLOTS:
+        ts = existing.get(slot_value)
+        booked = ts.booked_count if ts else 0
+        slots.append({
+            'value':       slot_value,
+            'label':       slot_label,
+            'booked':      booked,
+            'max':         TimeSlot.MAX_BOOKINGS,
+            'available':   booked < TimeSlot.MAX_BOOKINGS,
+            'slots_left':  TimeSlot.MAX_BOOKINGS - booked,
+        })
+ 
+    return JsonResponse({'slots': slots, 'provider': provider.name, 'date': date})
+ 
+ 
+# ──────────────────────────────────────────────────────────────
+#  CREATE BOOKING (User submits booking form)
+# ──────────────────────────────────────────────────────────────
+@login_required
+def create_booking(request):
+    if request.method != 'POST':
+        return redirect('categories')
+ 
+    from .models import ServiceProvider, Category, Booking, TimeSlot
+ 
+    provider_id    = request.POST.get('provider_id')
+    category_id    = request.POST.get('category_id')
+    scheduled_date = request.POST.get('date')
+    scheduled_time = request.POST.get('slot_time')
+    full_name      = request.POST.get('full_name', '').strip()
+    phone          = request.POST.get('phone', '').strip()
+    address        = request.POST.get('address', '').strip()
+    city           = request.POST.get('city', '').strip()
+    description    = request.POST.get('description', '').strip()
+    payment_method = request.POST.get('payment_method', 'cash')
+ 
+    # Validate required fields
+    if not all([provider_id, scheduled_date, scheduled_time]):
+        messages.error(request, '❌ Please fill all required fields.')
+        return redirect(request.META.get('HTTP_REFERER', 'categories'))
+ 
+    try:
+        provider = ServiceProvider.objects.get(id=provider_id)
+        category = Category.objects.get(id=category_id) if category_id else provider.category
+    except (ServiceProvider.DoesNotExist, Category.DoesNotExist):
+        messages.error(request, '❌ Invalid provider or category.')
+        return redirect('categories')
+ 
+    # Check slot availability (max 5 per slot)
+    slot, created = TimeSlot.objects.get_or_create(
+        provider=provider,
+        date=scheduled_date,
+        slot_time=scheduled_time,
+        defaults={'booked_count': 0}
+    )
+ 
+    if slot.is_full:
+        messages.error(request, f'❌ This time slot is fully booked (max {TimeSlot.MAX_BOOKINGS}). Please choose another slot.')
+        return redirect(request.META.get('HTTP_REFERER', 'categories'))
+ 
+    # Create the booking
+    booking = Booking.objects.create(
+        user           = request.user,
+        provider       = provider,
+        category       = category,
+        time_slot      = slot,
+        service_name   = category.name,
+        description    = description,
+        address        = address,
+        city           = city,
+        phone          = phone,
+        scheduled_date = scheduled_date,
+        scheduled_time = scheduled_time,
+        payment_method = payment_method,
+        status         = 'pending',
+        notes          = f'Booked by: {full_name}',
+    )
+ 
+    # Increment slot counter
+    slot.booked_count += 1
+    slot.save()
+ 
+    messages.success(request, f'✅ Booking #{booking.id} placed successfully! Waiting for provider to accept.')
+    return redirect('core:user_dashboard')
+ 
+ 
+# ──────────────────────────────────────────────────────────────
+#  PROVIDER: Accept booking + set estimate
+# ──────────────────────────────────────────────────────────────
+@login_required
+def provider_accept_booking(request, booking_id):
+    from .models import Booking, ServiceProvider
+ 
+    try:
+        provider = ServiceProvider.objects.get(email=request.user.email)
+    except ServiceProvider.DoesNotExist:
+        messages.error(request, '❌ Provider profile not found.')
+        return redirect('core:provider_dashboard')
+ 
+    booking = get_object_or_404(Booking, id=booking_id, provider=provider)
+ 
+    if request.method == 'POST':
+        estimate       = request.POST.get('estimate', 0)
+        provider_notes = request.POST.get('provider_notes', '').strip()
+ 
+        try:
+            estimate = float(estimate)
+            if estimate <= 0:
+                raise ValueError('Estimate must be positive')
+        except (ValueError, TypeError):
+            messages.error(request, '❌ Please enter a valid estimate amount.')
+            return redirect('core:provider_dashboard')
+ 
+        # Calculate pricing
+        booking.calculate_pricing(estimate)
+        booking.provider_notes = provider_notes
+        booking.status         = 'accepted'
+        booking.save()
+ 
+        messages.success(request, f'✅ Booking #{booking.id} accepted. Total: ₹{booking.total_amount}')
+        return redirect('core:provider_dashboard')
+ 
+    # GET — show accept form
+    return render(request, 'bookings/provider_accept.html', {'booking': booking})
+ 
+ 
+# ──────────────────────────────────────────────────────────────
+#  PROVIDER: Reject booking
+# ──────────────────────────────────────────────────────────────
+@login_required
+def provider_reject_booking(request, booking_id):
+    from .models import Booking, ServiceProvider, TimeSlot
+ 
+    try:
+        provider = ServiceProvider.objects.get(email=request.user.email)
+    except ServiceProvider.DoesNotExist:
+        messages.error(request, '❌ Provider profile not found.')
+        return redirect('core:provider_dashboard')
+ 
+    booking = get_object_or_404(Booking, id=booking_id, provider=provider)
+ 
+    if request.method == 'POST':
+        provider_notes = request.POST.get('provider_notes', '').strip()
+        booking.provider_notes = provider_notes or 'Rejected by provider.'
+        booking.status = 'rejected'
+        booking.save()
+ 
+        # Free up the slot
+        if booking.time_slot:
+            slot = booking.time_slot
+            slot.booked_count = max(0, slot.booked_count - 1)
+            slot.save()
+ 
+        messages.success(request, f'✅ Booking #{booking.id} rejected.')
+        return redirect('core:provider_dashboard')
+ 
+    return render(request, 'bookings/provider_reject.html', {'booking': booking})
+ 
+ 
+# ──────────────────────────────────────────────────────────────
+#  PROVIDER: Mark booking as completed
+# ──────────────────────────────────────────────────────────────
+@login_required
+def provider_complete_booking(request, booking_id):
+    from .models import Booking, ServiceProvider
+ 
+    try:
+        provider = ServiceProvider.objects.get(email=request.user.email)
+    except ServiceProvider.DoesNotExist:
+        return redirect('core:provider_dashboard')
+ 
+    booking = get_object_or_404(Booking, id=booking_id, provider=provider, status='accepted')
+    booking.status = 'completed'
+    booking.save()
+    messages.success(request, f'✅ Booking #{booking.id} marked as completed.')
+    return redirect('core:provider_dashboard')
+ 
+ 
+# ──────────────────────────────────────────────────────────────
+#  USER: Cancel booking
+# ──────────────────────────────────────────────────────────────
+@login_required
+def user_cancel_booking(request, booking_id):
+    from .models import Booking
+ 
+    booking = get_object_or_404(Booking, id=booking_id, user=request.user)
+ 
+    if booking.status in ('pending', 'accepted'):
+        booking.status = 'cancelled'
+        booking.save()
+ 
+        # Free up slot
+        if booking.time_slot:
+            slot = booking.time_slot
+            slot.booked_count = max(0, slot.booked_count - 1)
+            slot.save()
+ 
+        messages.success(request, f'✅ Booking #{booking.id} cancelled.')
+    else:
+        messages.error(request, '❌ This booking cannot be cancelled.')
+ 
+    return redirect('core:user_dashboard')
+ 
+ 
+# ──────────────────────────────────────────────────────────────
+#  UPDATED: user_dashboard — with real booking data
+# ──────────────────────────────────────────────────────────────
+@login_required
+def user_dashboard(request):
+    from .models import Category, Booking
+ 
+    bookings         = Booking.objects.filter(user=request.user).select_related('provider', 'category').order_by('-created_at')[:10]
+    active_bookings  = Booking.objects.filter(user=request.user, status__in=['pending','accepted','in_progress']).count()
+    completed_bookings = Booking.objects.filter(user=request.user, status='completed').count()
+    quick_categories = Category.objects.all()[:8]
+ 
+    context = {
+        'active_bookings':    active_bookings,
+        'completed_bookings': completed_bookings,
+        'saved_providers':    0,
+        'wallet_balance':     0,
+        'bookings':           bookings,
+        'favorite_providers': [],
+        'quick_categories':   quick_categories,
+    }
+    return render(request, 'dashboards/user_dashboard.html', context)
+ 
+ 
+# ──────────────────────────────────────────────────────────────
+#  UPDATED: provider_dashboard — with real booking data
+# ──────────────────────────────────────────────────────────────
+@login_required
+def provider_dashboard(request):
+    from .models import ServiceProvider, Booking
+    from django.db.models import Sum
+    from django.utils import timezone
+ 
+    try:
+        provider = ServiceProvider.objects.get(email=request.user.email)
+    except ServiceProvider.DoesNotExist:
+        provider = None
+ 
+    today            = timezone.now().date()
+    pending_requests = Booking.objects.filter(provider=provider, status='pending').select_related('user', 'category').order_by('-created_at') if provider else []
+    accepted_bookings = Booking.objects.filter(provider=provider, status='accepted').select_related('user', 'category') if provider else []
+    todays_bookings  = Booking.objects.filter(provider=provider, scheduled_date=today).count() if provider else 0
+    completed_jobs   = Booking.objects.filter(provider=provider, status='completed').count() if provider else 0
+    total_earnings   = Booking.objects.filter(provider=provider, status='completed').aggregate(t=Sum('total_amount'))['t'] or 0
+ 
+    context = {
+        'provider':          provider,
+        'todays_bookings':   todays_bookings,
+        'pending_requests':  pending_requests,
+        'accepted_bookings': accepted_bookings,
+        'completed_jobs':    completed_jobs,
+        'total_earnings':    total_earnings,
+        'today_earnings':    0,
+        'week_earnings':     0,
+        'month_earnings':    0,
+    }
+    return render(request, 'dashboards/provider_dashboard.html', context)
  

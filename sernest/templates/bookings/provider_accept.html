@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Accept Booking #{{ booking.id }} — SerNest{% endblock %}
+
+{% block extra_css %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+:root{--bg:#07080f;--card:#0f1018;--card2:#13141d;--border:rgba(255,255,255,0.07);--accent:#059669;--accent2:#34d399;--text:#f0f0f8;--muted:#6b6d82}
+body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;padding:90px 20px 60px}
+.wrap{max-width:600px;margin:0 auto}
+.back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:.83rem;margin-bottom:24px;transition:color .2s}
+.back-link:hover{color:var(--text)}
+.page-title{font-size:1.5rem;font-weight:800;color:var(--text);margin-bottom:6px}
+.page-sub{font-size:.83rem;color:var(--muted);margin-bottom:28px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:20px}
+.card-head{padding:16px 20px;border-bottom:1px solid var(--border);background:var(--card2);font-size:.9rem;font-weight:700;color:var(--text)}
+.card-body{padding:20px}
+.info-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:.84rem}
+.info-row:last-child{border-bottom:none}
+.info-key{color:var(--muted)}
+.info-val{color:var(--text);font-weight:600}
+.f-group{margin-bottom:16px}
+.f-label{display:block;font-size:.76rem;font-weight:600;color:rgba(255,255,255,.4);margin-bottom:7px;letter-spacing:.03em}
+.f-input,.f-textarea{width:100%;background:#0b0c14;border:1px solid var(--border);color:var(--text);padding:11px 14px;border-radius:10px;font-size:.87rem;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s}
+.f-input:focus,.f-textarea:focus{border-color:var(--accent)}
+.f-input::placeholder{color:rgba(255,255,255,.18)}
+.f-textarea{resize:vertical;min-height:80px}
+.price-preview{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:12px;display:none}
+.price-row{display:flex;justify-content:space-between;font-size:.83rem;margin-bottom:8px}
+.price-row:last-child{padding-top:8px;border-top:1px solid var(--border);margin-bottom:0;font-weight:700}
+.price-lbl{color:var(--muted)}
+.price-val{color:var(--text)}
+.price-total{color:var(--accent2);font-size:1rem}
+.btn-accept{width:100%;padding:13px;background:var(--accent);border:none;color:#fff;border-radius:10px;font-size:.92rem;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .2s;margin-top:8px}
+.btn-accept:hover{background:var(--accent2);color:#052e16}
+.btn-reject{width:100%;padding:12px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171;border-radius:10px;font-size:.88rem;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .2s;margin-top:8px;text-align:center;display:block;text-decoration:none}
+.btn-reject:hover{background:rgba(239,68,68,.2);color:#f87171}
+.badge{padding:4px 10px;border-radius:20px;font-size:.72rem;font-weight:600}
+.b-pending{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrap">
+  <a href="{% url 'core:provider_dashboard' %}" class="back-link">← Back to Dashboard</a>
+
+  <div class="page-title">Accept Booking #{{ booking.id }}</div>
+  <div class="page-sub">Review the booking details and enter your cost estimate.</div>
+
+  <!-- Booking Info -->
+  <div class="card">
+    <div class="card-head">📋 Booking Details</div>
+    <div class="card-body">
+      <div class="info-row"><span class="info-key">Customer</span><span class="info-val">{{ booking.user.first_name }} {{ booking.user.last_name }}</span></div>
+      <div class="info-row"><span class="info-key">Phone</span><span class="info-val">{{ booking.phone|default:booking.user.phone|default:"–" }}</span></div>
+      <div class="info-row"><span class="info-key">Service</span><span class="info-val">{{ booking.service_name }}</span></div>
+      <div class="info-row"><span class="info-key">Date</span><span class="info-val">{{ booking.scheduled_date }}</span></div>
+      <div class="info-row"><span class="info-key">Time Slot</span><span class="info-val">{{ booking.scheduled_time }}</span></div>
+      <div class="info-row"><span class="info-key">Address</span><span class="info-val">{{ booking.address|default:"–" }}, {{ booking.city|default:"–" }}</span></div>
+      <div class="info-row"><span class="info-key">Description</span><span class="info-val">{{ booking.description|default:"No details provided" }}</span></div>
+      <div class="info-row"><span class="info-key">Payment</span><span class="info-val">{{ booking.payment_method|title }}</span></div>
+      <div class="info-row"><span class="info-key">Status</span><span class="badge b-pending">⏳ {{ booking.get_status_display }}</span></div>
+    </div>
+  </div>
+
+  <!-- Accept Form with Estimate -->
+  <div class="card">
+    <div class="card-head">💰 Set Your Estimate & Accept</div>
+    <div class="card-body">
+      <form method="post" action="{% url 'core:provider_accept_booking' booking.id %}">
+        {% csrf_token %}
+
+        <div class="f-group">
+          <label class="f-label">Your Service Estimate (₹) *</label>
+          <input class="f-input" type="number" name="estimate" id="estimateInp"
+            placeholder="e.g. 500" min="1" required oninput="calcPricing(this.value)">
+          <div style="font-size:.73rem;color:var(--muted);margin-top:5px">
+            Enter your base charge. Platform margin (5%) and GST (18%) will be added automatically.
+          </div>
+        </div>
+
+        <!-- Live pricing breakdown -->
+        <div class="price-preview" id="pricePreview">
+          <div class="price-row"><span class="price-lbl">Your Estimate</span><span class="price-val" id="pvEstimate">₹0</span></div>
+          <div class="price-row"><span class="price-lbl">Platform Margin (5%)</span><span class="price-val" id="pvMargin">₹0</span></div>
+          <div class="price-row"><span class="price-lbl">GST (18%)</span><span class="price-val" id="pvGst">₹0</span></div>
+          <div class="price-row"><span class="price-lbl">Total Payable by Customer</span><span class="price-total" id="pvTotal">₹0</span></div>
+        </div>
+
+        <div class="f-group" style="margin-top:16px">
+          <label class="f-label">Message to Customer (optional)</label>
+          <textarea class="f-textarea" name="provider_notes"
+            placeholder="e.g. I will arrive between 9–10 AM. Please keep the area accessible."></textarea>
+        </div>
+
+        <button type="submit" class="btn-accept">✅ Accept Booking & Send Estimate</button>
+      </form>
+
+      <a href="{% url 'core:provider_reject_booking' booking.id %}" class="btn-reject">✕ Reject this Booking</a>
+    </div>
+  </div>
+</div>
+
+<script>
+function calcPricing(val) {
+  const est    = parseFloat(val) || 0;
+  const margin = Math.round(est * 0.05 * 100) / 100;
+  const sub    = est + margin;
+  const gst    = Math.round(sub * 0.18 * 100) / 100;
+  const total  = sub + gst;
+
+  document.getElementById('pvEstimate').textContent = '₹' + est.toFixed(2);
+  document.getElementById('pvMargin').textContent   = '₹' + margin.toFixed(2);
+  document.getElementById('pvGst').textContent      = '₹' + gst.toFixed(2);
+  document.getElementById('pvTotal').textContent    = '₹' + total.toFixed(2);
+
+  document.getElementById('pricePreview').style.display = est > 0 ? 'block' : 'none';
+}
+</script>
+{% endblock %}

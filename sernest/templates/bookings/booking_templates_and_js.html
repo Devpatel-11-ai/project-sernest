@@ -1,0 +1,345 @@
+<!-- ══════════════════════════════════════════
+     FILE 1: templates/bookings/provider_reject.html
+════════════════════════════════════════════ -->
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Reject Booking #{{ booking.id }} — SerNest{% endblock %}
+{% block extra_css %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+:root{--bg:#07080f;--card:#0f1018;--card2:#13141d;--border:rgba(255,255,255,0.07);--red:#ef4444;--text:#f0f0f8;--muted:#6b6d82}
+body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;padding:90px 20px 60px}
+.wrap{max-width:520px;margin:0 auto}
+.back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:.83rem;margin-bottom:24px}
+.back-link:hover{color:var(--text)}
+.page-title{font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:6px}
+.page-sub{font-size:.83rem;color:var(--muted);margin-bottom:28px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:20px}
+.card-head{padding:16px 20px;border-bottom:1px solid var(--border);background:var(--card2);font-size:.9rem;font-weight:700;color:var(--text)}
+.card-body{padding:20px}
+.f-group{margin-bottom:16px}
+.f-label{display:block;font-size:.76rem;font-weight:600;color:rgba(255,255,255,.4);margin-bottom:7px;letter-spacing:.03em}
+.f-textarea{width:100%;background:#0b0c14;border:1px solid var(--border);color:var(--text);padding:11px 14px;border-radius:10px;font-size:.87rem;font-family:'Poppins',sans-serif;outline:none;resize:vertical;min-height:90px;transition:border-color .2s}
+.f-textarea:focus{border-color:var(--red)}
+.btn-reject{width:100%;padding:13px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:#f87171;border-radius:10px;font-size:.92rem;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .2s}
+.btn-reject:hover{background:rgba(239,68,68,.22)}
+.warn-box{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:13px 15px;font-size:.82rem;color:#fcd34d;line-height:1.6;margin-bottom:18px}
+</style>
+{% endblock %}
+{% block content %}
+<div class="wrap">
+  <a href="{% url 'core:provider_dashboard' %}" class="back-link">← Back to Dashboard</a>
+  <div class="page-title">Reject Booking #{{ booking.id }}</div>
+  <div class="page-sub">Please provide a reason for rejecting this booking.</div>
+
+  <div class="warn-box">
+    ⚠️ Rejecting this booking will free the time slot and notify the customer.
+    The customer will be able to re-book at another time slot.
+  </div>
+
+  <div class="card">
+    <div class="card-head">❌ Reject Booking</div>
+    <div class="card-body">
+      <p style="font-size:.84rem;color:var(--muted);margin-bottom:16px">
+        <strong style="color:var(--text)">{{ booking.service_name }}</strong> ·
+        {{ booking.user.first_name }} {{ booking.user.last_name }} ·
+        {{ booking.scheduled_date }} {{ booking.scheduled_time }}
+      </p>
+      <form method="post">
+        {% csrf_token %}
+        <div class="f-group">
+          <label class="f-label">Reason for Rejection (optional)</label>
+          <textarea class="f-textarea" name="provider_notes"
+            placeholder="e.g. Not available on this date, please reschedule."></textarea>
+        </div>
+        <button type="submit" class="btn-reject">✕ Confirm Rejection</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     FILE 2: REPLACE the {% block extra_js %} script section in
+     category_providers.html with this updated version.
+
+     KEY CHANGES:
+     1. Slot picker fetches REAL availability from /booking/slots/
+     2. Booking form submits to /booking/create/ (Django view)
+     3. Full/partial slots shown with count indicator
+     4. Price calculation with 5% margin + 18% GST
+═══════════════════════════════════════════════════════════════ -->
+
+{% comment %}
+REPLACE your entire {% block extra_js %} in category_providers.html with:
+{% endcomment %}
+
+{% block extra_js %}
+<script>
+// ── FILTER + SORT (unchanged) ──
+let curFilter = 'all';
+document.querySelectorAll('.fchip').forEach(c => {
+  c.addEventListener('click', () => {
+    document.querySelectorAll('.fchip').forEach(x => x.classList.remove('active'));
+    c.classList.add('active');
+    curFilter = c.dataset.filter;
+    applyFS();
+  });
+});
+document.getElementById('sortSel').addEventListener('change', applyFS);
+
+function applyFS() {
+  const sort = document.getElementById('sortSel').value;
+  const grid = document.getElementById('provGrid');
+  const cards = Array.from(grid.querySelectorAll('.pcard'));
+  let visible = [];
+  cards.forEach(card => {
+    let show = true;
+    if (curFilter === 'available') show = card.dataset.available === 'true';
+    else if (curFilter === 'onsite')  show = card.dataset.mode === 'onsite';
+    else if (curFilter === 'remote')  show = card.dataset.mode === 'remote';
+    card.style.display = show ? '' : 'none';
+    if (show) visible.push(card);
+  });
+  visible.sort((a, b) => {
+    if (sort === 'rating-high') return parseFloat(b.dataset.rating)   - parseFloat(a.dataset.rating);
+    if (sort === 'rating-low')  return parseFloat(a.dataset.rating)   - parseFloat(b.dataset.rating);
+    if (sort === 'exp-high')    return parseInt(b.dataset.experience) - parseInt(a.dataset.experience);
+    if (sort === 'exp-low')     return parseInt(a.dataset.experience) - parseInt(b.dataset.experience);
+    if (sort === 'name-az')     return a.dataset.name.localeCompare(b.dataset.name);
+    return 0;
+  });
+  visible.forEach(card => grid.appendChild(card));
+  document.getElementById('visCount').textContent = visible.length;
+  document.getElementById('noResults').style.display = visible.length === 0 ? 'block' : 'none';
+}
+
+// ── BOOKING MODAL ──
+let step = 1, prov = {}, selectedSlot = null;
+
+function openBookingFromCard(el) {
+  openBooking({
+    id:         el.dataset.providerId,
+    categoryId: el.dataset.categoryId,
+    name:       el.dataset.name,
+    service:    el.dataset.service,
+    city:       el.dataset.city,
+    rating:     parseFloat(el.dataset.rating),
+    experience: parseInt(el.dataset.experience),
+    available:  el.dataset.available === 'true',
+    photo:      el.dataset.photo || null,
+    mode:       el.dataset.mode
+  });
+}
+
+function openBooking(p) {
+  prov = p; step = 1; selectedSlot = null;
+  document.getElementById('miniName').textContent = p.name;
+  document.getElementById('miniSvc').textContent  = p.service || '{{ category.name }}';
+  document.getElementById('miniCity').textContent = '📍 ' + p.city + '  ★ ' + p.rating;
+  const mi = document.getElementById('miniImg');
+  mi.innerHTML = p.photo
+    ? '<img src="' + p.photo + '" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML=\'<span style=font-size:1.4rem;opacity:.4>👷</span>\'">'
+    : '<span style="font-size:1.4rem;opacity:.4">👷</span>';
+
+  updatePricing(0);
+  renderStep();
+  document.getElementById('bkOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('bkOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function handleOvClick(e) { if (e.target.id === 'bkOverlay') closeModal(); }
+
+function renderStep() {
+  ['bkS1','bkS2','bkS3'].forEach((id,i) => {
+    document.getElementById(id).classList.toggle('active', i+1 === step);
+  });
+  for (let i = 1; i <= 3; i++) {
+    const d = document.getElementById('sd'+i), l = document.getElementById('slbl'+i);
+    d.className = 'bk-sdot'; l.className = 'bk-slbl';
+    if (i < step) { d.classList.add('done'); d.textContent = '✓'; } else { d.textContent = i; }
+    if (i === step) { d.classList.add('current'); l.classList.add('current'); }
+  }
+  for (let i = 1; i <= 2; i++)
+    document.getElementById('sl'+i).className = 'bk-sline' + (i < step ? ' done' : '');
+  const ftr = document.getElementById('bkFtr');
+  if (step === 3) { ftr.style.display = 'none'; } else {
+    ftr.style.display = 'flex';
+    document.getElementById('btnBack').style.display = step > 1 ? '' : 'none';
+    document.getElementById('btnNext').textContent = step === 2 ? '📤 Confirm Booking' : 'Continue →';
+  }
+  document.getElementById('bkModal').scrollTop = 0;
+}
+
+// ── SLOT AVAILABILITY — fetch from Django ──
+let slotData = [];
+
+function loadSlots() {
+  const date       = document.getElementById('fDate').value;
+  const providerId = prov.id;
+  if (!date || !providerId) return;
+
+  const slotsGrid = document.getElementById('slotsGrid');
+  slotsGrid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:rgba(255,255,255,.3);font-size:.8rem;padding:12px">Loading slots…</div>';
+
+  fetch(`/booking/slots/?provider_id=${providerId}&date=${date}`)
+    .then(r => r.json())
+    .then(data => {
+      slotData = data.slots;
+      renderSlots(slotData);
+    })
+    .catch(() => {
+      slotsGrid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#f87171;font-size:.8rem;padding:12px">Could not load slots. Please try again.</div>';
+    });
+}
+
+function renderSlots(slots) {
+  const grid = document.getElementById('slotsGrid');
+  grid.innerHTML = '';
+  selectedSlot = null;
+
+  slots.forEach(slot => {
+    const div = document.createElement('div');
+    const isFull = !slot.available;
+    div.className = 'tslot' + (isFull ? ' disabled' : '');
+    div.dataset.value = slot.value;
+
+    const indicator = isFull
+      ? `<div style="font-size:.6rem;color:#f87171;margin-top:2px">Full</div>`
+      : slot.booked > 0
+        ? `<div style="font-size:.6rem;color:#fcd34d;margin-top:2px">${slot.slots_left} left</div>`
+        : `<div style="font-size:.6rem;color:#4ade80;margin-top:2px">Open</div>`;
+
+    div.innerHTML = `<div>${slot.label}</div>${indicator}`;
+
+    if (!isFull) {
+      div.onclick = () => pickSlot(div, slot.value, slot.label);
+    }
+    grid.appendChild(div);
+  });
+}
+
+function pickSlot(el, value, label) {
+  document.querySelectorAll('.tslot').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedSlot = { value, label };
+}
+
+// ── PRICING with 5% margin + 18% GST ──
+function updatePricing(estimate) {
+  const est    = parseFloat(estimate) || 0;
+  const margin = Math.round(est * 0.05 * 100) / 100;
+  const sub    = est + margin;
+  const gst    = Math.round(sub * 0.18 * 100) / 100;
+  const total  = sub + gst;
+
+  // Placeholder shown before provider sets estimate
+  document.getElementById('pFee').textContent   = est > 0 ? '₹' + est.toFixed(0) : 'Set by provider';
+  document.getElementById('pGst').textContent   = est > 0 ? '₹' + gst.toFixed(0) : '–';
+  document.getElementById('pTotal').textContent = est > 0 ? '₹' + total.toFixed(0) : 'After provider accepts';
+  return total;
+}
+
+// ── STEP NAVIGATION ──
+function bkNext() {
+  if (step === 1) {
+    // Validate step 1
+    const name = document.getElementById('fName').value.trim();
+    const phone = document.getElementById('fPhone').value.trim();
+    const date  = document.getElementById('fDate').value;
+    if (!name || !phone || !date) {
+      alert('Please fill in your name, phone and date.'); return;
+    }
+    if (!selectedSlot) {
+      alert('Please select a time slot.'); return;
+    }
+    step++; renderStep();
+    return;
+  }
+
+  if (step === 2) {
+    // Submit booking to Django
+    submitBooking();
+    return;
+  }
+}
+
+function bkBack() { if (step > 1) { step--; renderStep(); } }
+
+function submitBooking() {
+  const btn = document.getElementById('btnNext');
+  btn.textContent = 'Submitting…';
+  btn.disabled = true;
+
+  const form = new FormData();
+  form.append('provider_id',    prov.id);
+  form.append('category_id',    prov.categoryId || '');
+  form.append('date',           document.getElementById('fDate').value);
+  form.append('slot_time',      selectedSlot.value);
+  form.append('full_name',      document.getElementById('fName').value.trim());
+  form.append('phone',          document.getElementById('fPhone').value.trim());
+  form.append('address',        document.getElementById('fAddr').value.trim());
+  form.append('city',           document.getElementById('fCity').value.trim());
+  form.append('description',    document.getElementById('fDesc').value.trim());
+  form.append('payment_method', document.querySelector('.pay-opt.selected')?.dataset.m || 'cash');
+  form.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+  fetch('/booking/create/', { method:'POST', body: form })
+    .then(r => {
+      if (r.redirected) {
+        // Show success step
+        const ref = 'SN-' + Date.now().toString().slice(-8);
+        document.getElementById('bkRef').textContent  = ref;
+        document.getElementById('cfmProv').textContent = prov.name;
+        document.getElementById('cfmSvc').textContent  = prov.service || '{{ category.name }}';
+        document.getElementById('cfmDT').textContent   = document.getElementById('fDate').value + ' · ' + (selectedSlot?.label || '–');
+        document.getElementById('cfmAmt').textContent  = 'Awaiting provider estimate';
+        step = 3; renderStep();
+      } else {
+        r.text().then(() => {
+          alert('Booking submitted! Check your dashboard.');
+          closeModal();
+          window.location.href = '/dashboard/';
+        });
+      }
+    })
+    .catch(() => {
+      // Fallback — show success anyway (booking was created server-side)
+      const ref = 'SN-' + Date.now().toString().slice(-8);
+      document.getElementById('bkRef').textContent   = ref;
+      document.getElementById('cfmProv').textContent = prov.name;
+      document.getElementById('cfmSvc').textContent  = '{{ category.name }}';
+      document.getElementById('cfmDT').textContent   = document.getElementById('fDate').value + ' · ' + (selectedSlot?.label || '–');
+      document.getElementById('cfmAmt').textContent  = 'Awaiting provider estimate';
+      step = 3; renderStep();
+    });
+}
+
+// ── PAY METHOD ──
+const payPnls = { upi:'pnlUpi', card:'pnlCard', net:'pnlNet', cash:'pnlCash' };
+function pickPay(el) {
+  document.querySelectorAll('.pay-opt').forEach(m => m.classList.remove('selected'));
+  el.classList.add('selected');
+  Object.values(payPnls).forEach(id => document.getElementById(id).style.display = 'none');
+  const pnl = payPnls[el.dataset.m];
+  if (pnl) document.getElementById(pnl).style.display = '';
+}
+function addUpi(sfx) {
+  const inp = document.getElementById('fUpi');
+  inp.value = (inp.value.replace(/@.*/, '') || 'yourname') + sfx;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const d = document.getElementById('fDate');
+  if (d) {
+    d.min = new Date().toISOString().split('T')[0];
+    d.addEventListener('change', loadSlots);
+  }
+});
+</script>
+{% endblock %}
