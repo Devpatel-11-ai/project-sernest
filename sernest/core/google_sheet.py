@@ -10,7 +10,7 @@ def save_contact(name, email, subject, message):
     ]
 
     # Goes up from core/ → sernest/ where credentials.json lives
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     creds_path = os.path.join(BASE_DIR, 'credentials.json')
     print(f"📁 credentials path: {creds_path}")
 
