@@ -203,3 +203,22 @@ class Booking(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+# ══════════════════════════════════════════════════════════════
+#  UPDATED : rating system 
+# ══════════════════════════════════════════════════════════════
+
+
+class Rating(models.Model):
+    booking  = models.OneToOneField('Booking', on_delete=models.CASCADE, related_name='rating')
+    user     = models.ForeignKey('User', on_delete=models.CASCADE, related_name='ratings_given')
+    provider = models.ForeignKey('ServiceProvider', on_delete=models.CASCADE, related_name='ratings')
+    stars    = models.PositiveSmallIntegerField()  # 1–5
+    comment  = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+ 
+    class Meta:
+        ordering = ['-created_at']
+ 
+    def __str__(self):
+        return f"{self.user.first_name} → {self.provider.name}: {self.stars}★"

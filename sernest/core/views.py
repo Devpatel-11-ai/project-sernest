@@ -125,7 +125,13 @@ def UserSignupView(request):
 #  HOME
 # ══════════════════════════════════════
 def home(request):
-    return render(request, 'home.html')
+    from .models import Booking
+    last_booking = None
+    if request.user.is_authenticated and request.user.role == 'user':
+        last_booking = Booking.objects.filter(
+            user=request.user
+        ).select_related('provider', 'category').order_by('-created_at').first()
+    return render(request, 'home.html', {'last_booking': last_booking})
 
 
 # ══════════════════════════════════════
@@ -382,12 +388,27 @@ def provider_profile(request):
         messages.success(request, '✅ Profile updated successfully!')
         return redirect('core:provider_profile')
 
+    from .models import Rating, Booking
+    from django.db.models import Avg
+
+    reviews = Rating.objects.filter(provider=provider).select_related('user').order_by('-created_at')[:10]
+    completed_jobs = Booking.objects.filter(provider=provider, status='completed').count()
+
+    rating_dist = {}
+    for i in range(1, 6):
+        count = Rating.objects.filter(provider=provider, stars=i).count()
+        total = Rating.objects.filter(provider=provider).count()
+        rating_dist[i] = round((count / total * 100) if total > 0 else 0)
+
     return render(request, 'profiles/provider_profile.html', {
-    'provider':   provider,
-    'categories': categories,
-    'days_list':  ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    'rating_levels': ['5', '4', '3', '2', '1'],
-})
+        'provider':      provider,
+        'categories':    categories,
+        'days_list':     ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        'rating_levels': ['5', '4', '3', '2', '1'],
+        'reviews':       reviews,
+        'completed_jobs': completed_jobs,
+        'rating_dist':   rating_dist,
+    })
 
 
 # ──────────────────────────────────────────
@@ -853,12 +874,21 @@ def user_cancel_booking(request, booking_id):
 # ──────────────────────────────────────────────────────────────
 @login_required
 def user_dashboard(request):
-    from .models import Category, Booking
+    from .models import Category, Booking, Rating
  
-    bookings         = Booking.objects.filter(user=request.user).select_related('provider', 'category').order_by('-created_at')[:10]
-    active_bookings  = Booking.objects.filter(user=request.user, status__in=['pending','accepted','in_progress']).count()
+    bookings = Booking.objects.filter(
+        user=request.user
+    ).select_related('provider', 'category').prefetch_related('rating').order_by('-created_at')[:10]
+ 
+    active_bookings    = Booking.objects.filter(user=request.user, status__in=['pending','accepted','in_progress']).count()
     completed_bookings = Booking.objects.filter(user=request.user, status='completed').count()
-    quick_categories = Category.objects.all()[:8]
+    quick_categories   = Category.objects.all()[:8]
+ 
+    # Add 'can_rate' flag to each booking
+    bookings_with_flags = []
+    for b in bookings:
+        can_rate = b.status == 'completed' and not hasattr(b, 'rating')
+        bookings_with_flags.append({'booking': b, 'can_rate': can_rate})
  
     context = {
         'active_bookings':    active_bookings,
@@ -866,10 +896,56 @@ def user_dashboard(request):
         'saved_providers':    0,
         'wallet_balance':     0,
         'bookings':           bookings,
+        'bookings_with_flags': bookings_with_flags,
         'favorite_providers': [],
         'quick_categories':   quick_categories,
     }
     return render(request, 'dashboards/user_dashboard.html', context)
+
+# ========================
+# rating system updated
+# ========================
+
+@login_required
+def rate_booking(request, booking_id):
+    from .models import Booking, Rating, ServiceProvider
+    from django.db.models import Avg
+ 
+    booking = get_object_or_404(Booking, id=booking_id, user=request.user, status='completed')
+ 
+    # Already rated?
+    if hasattr(booking, 'rating'):
+        messages.error(request, '❌ You have already rated this booking.')
+        return redirect('core:user_dashboard')
+ 
+    if request.method == 'POST':
+        stars   = int(request.POST.get('stars', 0))
+        comment = request.POST.get('comment', '').strip()
+ 
+        if not 1 <= stars <= 5:
+            messages.error(request, '❌ Please select a rating between 1 and 5 stars.')
+            return redirect('core:user_dashboard')
+ 
+        # Save rating
+        Rating.objects.create(
+            booking  = booking,
+            user     = request.user,
+            provider = booking.provider,
+            stars    = stars,
+            comment  = comment,
+        )
+ 
+        # Recalculate provider's average rating
+        avg = Rating.objects.filter(provider=booking.provider).aggregate(a=Avg('stars'))['a']
+        booking.provider.rating = round(avg, 1)
+        booking.provider.save()
+ 
+        messages.success(request, f'✅ Thanks for rating {booking.provider.name}!')
+        return redirect('core:user_dashboard')
+ 
+    return render(request, 'bookings/rate_booking.html', {'booking': booking})
+
+ 
  
  
 # ──────────────────────────────────────────────────────────────

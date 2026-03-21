@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Rate Service — SerNest{% endblock %}
+
+{% block extra_css %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+:root{--bg:#07080f;--card:#0f1018;--card2:#13141d;--border:rgba(255,255,255,0.07);--accent:#6c63ff;--accent2:#a78bfa;--text:#f0f0f8;--muted:#6b6d82}
+body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;padding:90px 20px 60px}
+.wrap{max-width:500px;margin:0 auto}
+.back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:.83rem;margin-bottom:24px;transition:color .2s}
+.back-link:hover{color:var(--text)}
+.page-title{font-size:1.5rem;font-weight:800;color:var(--text);margin-bottom:6px}
+.page-sub{font-size:.83rem;color:var(--muted);margin-bottom:28px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:20px}
+.card-head{padding:16px 20px;border-bottom:1px solid var(--border);background:var(--card2);font-weight:700;font-size:.9rem}
+.card-body{padding:24px}
+
+/* Provider mini */
+.prov-mini{display:flex;align-items:center;gap:14px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:24px}
+.prov-avatar{width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#6c63ff,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden}
+.prov-avatar img{width:100%;height:100%;object-fit:cover}
+.prov-name{font-weight:700;font-size:.92rem;color:var(--text)}
+.prov-svc{font-size:.76rem;color:var(--accent2);margin-top:2px}
+.prov-date{font-size:.72rem;color:var(--muted);margin-top:2px}
+
+/* Star rating */
+.star-section{text-align:center;margin-bottom:24px}
+.star-label{font-size:.8rem;font-weight:600;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:14px}
+.stars-input{display:flex;justify-content:center;gap:10px;margin-bottom:10px}
+.star-btn{font-size:2.4rem;cursor:pointer;transition:transform .15s;background:none;border:none;padding:0;color:rgba(255,255,255,.15);line-height:1}
+.star-btn:hover,.star-btn.active{color:#f59e0b;transform:scale(1.15)}
+.star-hint{font-size:.78rem;color:var(--muted);height:18px;transition:color .2s}
+
+/* Comment */
+.f-group{margin-bottom:16px}
+.f-label{display:block;font-size:.77rem;font-weight:600;color:rgba(255,255,255,.4);margin-bottom:7px;letter-spacing:.03em}
+.f-textarea{width:100%;background:#0b0c14;border:1px solid var(--border);color:var(--text);padding:11px 14px;border-radius:10px;font-size:.87rem;font-family:'Poppins',sans-serif;outline:none;resize:vertical;min-height:90px;transition:border-color .2s}
+.f-textarea:focus{border-color:var(--accent)}
+.f-textarea::placeholder{color:rgba(255,255,255,.18)}
+
+/* Submit */
+.btn-submit{width:100%;padding:13px;background:var(--accent);border:none;color:#fff;border-radius:10px;font-size:.92rem;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .2s}
+.btn-submit:hover{background:var(--accent2);box-shadow:0 0 22px rgba(108,99,255,.4)}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrap">
+  <a href="{% url 'core:user_dashboard' %}" class="back-link">← Back to Dashboard</a>
+  <div class="page-title">⭐ Rate Your Experience</div>
+  <div class="page-sub">Your feedback helps other customers choose the right provider.</div>
+
+  <div class="card">
+    <div class="card-head">📋 Booking #{{ booking.id }} — {{ booking.service_name }}</div>
+    <div class="card-body">
+
+      <!-- Provider mini card -->
+      <div class="prov-mini">
+        <div class="prov-avatar">
+          {% if booking.provider.profile_image %}
+            <img src="{{ booking.provider.profile_image.url }}" alt="">
+          {% else %}
+            {{ booking.provider.name|first|upper }}
+          {% endif %}
+        </div>
+        <div>
+          <div class="prov-name">{{ booking.provider.name }}</div>
+          <div class="prov-svc">{{ booking.provider.category.name }}</div>
+          <div class="prov-date">📅 {{ booking.scheduled_date }} · {{ booking.scheduled_time }}</div>
+        </div>
+      </div>
+
+      <form method="post" id="ratingForm">
+        {% csrf_token %}
+        <input type="hidden" name="stars" id="starsInput" value="0">
+
+        <!-- Star selector -->
+        <div class="star-section">
+          <div class="star-label">How was your experience?</div>
+          <div class="stars-input">
+            {% for i in "12345" %}
+            <button type="button" class="star-btn" data-val="{{ forloop.counter }}">★</button>
+            {% endfor %}
+          </div>
+          <div class="star-hint" id="starHint">Click a star to rate</div>
+        </div>
+
+        <!-- Comment -->
+        <div class="f-group">
+          <label class="f-label">Your Review (optional)</label>
+          <textarea class="f-textarea" name="comment"
+            placeholder="Tell others about the service quality, punctuality, professionalism…"></textarea>
+        </div>
+
+        <button type="submit" class="btn-submit" id="submitBtn" disabled>
+          Submit Rating
+        </button>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const HINTS = ['', 'Poor 😞', 'Fair 😐', 'Good 🙂', 'Very Good 😊', 'Excellent! 🌟'];
+let selected = 0;
+
+function setRating(val) {
+  selected = val;
+  document.getElementById('starsInput').value = val;
+  document.getElementById('starHint').textContent = HINTS[val];
+  document.getElementById('starHint').style.color = '#f59e0b';
+  document.getElementById('submitBtn').disabled = false;
+
+  document.querySelectorAll('.star-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', i < val);
+  });
+}
+
+// Click handler
+document.querySelectorAll('.star-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    setRating(parseInt(btn.dataset.val));
+  });
+});
+
+// Hover preview
+document.querySelectorAll('.star-btn').forEach((btn, i) => {
+  btn.addEventListener('mouseenter', () => {
+    document.getElementById('starHint').textContent = HINTS[i + 1];
+    document.querySelectorAll('.star-btn').forEach((b, j) => {
+      b.style.color = j <= i ? '#f59e0b' : (j < selected ? '#f59e0b' : 'rgba(255,255,255,.15)');
+    });
+  });
+  btn.addEventListener('mouseleave', () => {
+    document.getElementById('starHint').textContent = selected ? HINTS[selected] : 'Click a star to rate';
+    document.querySelectorAll('.star-btn').forEach((b, j) => {
+      b.classList.toggle('active', j < selected);
+      b.style.color = '';
+    });
+  });
+});
+
+document.getElementById('ratingForm').addEventListener('submit', e => {
+  if (selected === 0) {
+    e.preventDefault();
+    document.getElementById('starHint').textContent = '⚠️ Please select a star rating';
+    document.getElementById('starHint').style.color = '#f87171';
+  }
+});
+</script>
+{% endblock %}

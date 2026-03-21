@@ -363,7 +363,7 @@
 {% block extra_js %}
 <script>
 // ── EARNINGS with localStorage + IST timezone ──
-const STORAGE_KEY = 'sernest_earnings';
+const STORAGE_KEY = 'sernest_earnings_{{ request.user.email }}';
 const TZ = 'Asia/Kolkata';
 const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 

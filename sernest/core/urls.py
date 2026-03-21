@@ -54,5 +54,5 @@ urlpatterns = [
   path('booking/<int:booking_id>/reject/',         views.provider_reject_booking,    name='provider_reject_booking'),
   path('booking/<int:booking_id>/complete/',       views.provider_complete_booking,  name='provider_complete_booking'),
   path('booking/<int:booking_id>/cancel/',         views.user_cancel_booking,        name='user_cancel_booking'),
- 
+  path('booking/<int:booking_id>/rate/', views.rate_booking, name='rate_booking'),
   ]

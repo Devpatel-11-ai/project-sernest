@@ -571,15 +571,20 @@
                   {% else %}🔴 Cancelled{% endif %}
                 </span>
               </td>
-              <td>
-                {% if b.status == 'pending' or b.status == 'accepted' %}
-                <a href="{% url 'core:user_cancel_booking' b.id %}"
-                   class="mini-btn mini-btn-ghost"
-                   onclick="return confirm('Cancel booking #{{ b.id }}?')">Cancel</a>
-                {% else %}
-                <button class="mini-btn mini-btn-ghost" disabled style="opacity:.4">Done</button>
-                {% endif %}
-              </td>
+             <td>
+              {% if b.status == 'pending' or b.status == 'accepted' %}
+              <a href="{% url 'core:user_cancel_booking' b.id %}"
+              class="mini-btn mini-btn-ghost"
+              onclick="return confirm('Cancel booking #{{ b.id }}?')">Cancel</a>
+              {% elif b.status == 'completed' and not b.rating %}
+              <a href="{% url 'core:rate_booking' b.id %}"
+              class="mini-btn mini-btn-primary">⭐ Rate</a>
+              {% elif b.status == 'completed' and b.rating %}
+              <span style="color:#f59e0b;font-size:.8rem">⭐ {{ b.rating.stars }}/5 Rated</span>
+              {% else %}
+              <button class="mini-btn mini-btn-ghost" disabled style="opacity:.4">Done</button>
+              {% endif %}
+            </td>
             </tr>
             {% endfor %}
           </tbody>

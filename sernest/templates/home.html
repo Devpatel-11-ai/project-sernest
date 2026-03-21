@@ -52,18 +52,57 @@
   <div class="hero-visual">
     <div class="hero-float-card">
       <div style="background:rgba(8,14,30,0.85);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:20px 24px;min-width:260px;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+        {% if last_booking %}
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-          <div style="width:36px;height:36px;background:linear-gradient(135deg,#4f6ef7,#7c3aed);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem">⚡</div>
+          <div style="width:36px;height:36px;background:linear-gradient(135deg,#4f6ef7,#7c3aed);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem">
+            {{ last_booking.category.icon|default:"🔧" }}
+          </div>
           <div>
-            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;color:#f0f4ff">Electrician Booked</div>
-            <div style="font-size:0.75rem;color:rgba(240,244,255,0.5)">Today, 3:00 PM</div>
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;color:#f0f4ff">
+              {{ last_booking.service_name }} Booked
+            </div>
+            <div style="font-size:0.75rem;color:rgba(240,244,255,0.5)">
+              {{ last_booking.scheduled_date }} · {{ last_booking.scheduled_time }}
+            </div>
           </div>
         </div>
         <div style="background:rgba(79,110,247,0.1);border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center">
           <span style="font-size:0.8rem;color:#a5b4fc">Status</span>
-          <span style="font-size:0.78rem;font-weight:600;color:#4ade80;background:rgba(74,222,128,0.1);border-radius:50px;padding:3px 10px">Confirmed ✓</span>
-        </div>
+         <span class="bk-status-pill
+         {% if last_booking.status == 'pending' %}bk-pending
+         {% elif last_booking.status == 'accepted' %}bk-accepted
+         {% elif last_booking.status == 'completed' %}bk-completed
+         {% elif last_booking.status == 'rejected' %}bk-rejected
+         {% elif last_booking.status == 'cancelled' %}bk-cancelled
+         {% else %}bk-accepted{% endif %}">
+          {% if last_booking.status == 'pending' %}⏳ Pending
+          {% elif last_booking.status == 'accepted' %}✅ Confirmed
+          {% elif last_booking.status == 'in_progress' %}🔄 In Progress
+          {% elif last_booking.status == 'completed' %}🎉 Completed
+          {% elif last_booking.status == 'rejected' %}❌ Rejected
+          {% elif last_booking.status == 'cancelled' %}🔴 Cancelled
+          {% endif %}
+        </span>
       </div>
+    {% if last_booking.provider %}
+    <div style="margin-top:10px;font-size:0.73rem;color:rgba(240,244,255,0.4)">
+      👷 {{ last_booking.provider.name }} · {{ last_booking.provider.city }}
+    </div>
+    {% endif %}
+  {% else %}
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="width:36px;height:36px;background:linear-gradient(135deg,#4f6ef7,#7c3aed);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem">⚡</div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;color:#f0f4ff">Electrician Booked</div>
+        <div style="font-size:0.75rem;color:rgba(240,244,255,0.5)">Today, 3:00 PM</div>
+      </div>
+    </div>
+    <div style="background:rgba(79,110,247,0.1);border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:0.8rem;color:#a5b4fc">Status</span>
+      <span style="font-size:0.78rem;font-weight:600;color:#4ade80;background:rgba(74,222,128,0.1);border-radius:50px;padding:3px 10px">Confirmed ✓</span>
+    </div>
+  {% endif %}
+</div>
 
       <div style="background:rgba(8,14,30,0.85);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:16px 20px;margin-top:12px;min-width:220px;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
         <div style="font-size:0.78rem;color:rgba(240,244,255,0.4);margin-bottom:6px;font-family:'Syne',sans-serif;font-weight:600;letter-spacing:0.5px;text-transform:uppercase">Average Rating</div>
