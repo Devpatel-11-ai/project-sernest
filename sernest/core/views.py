@@ -982,3 +982,127 @@ def provider_dashboard(request):
     }
     return render(request, 'dashboards/provider_dashboard.html', context)
  
+
+# VIEW 1: create_razorpay_order
+# This creates a Razorpay order and returns order_id to frontend
+@login_required
+def create_razorpay_order(request):
+    import razorpay
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+ 
+    data = json.loads(request.body)
+    amount_rupees = float(data.get('amount', 0))
+ 
+    if amount_rupees <= 0:
+        return JsonResponse({'error': 'Invalid amount'}, status=400)
+ 
+    client = razorpay.Client(
+        auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+    )
+ 
+    order_data = {
+        'amount':   int(amount_rupees * 100),  # convert to paise
+        'currency': 'INR',
+        'payment_capture': 1,
+    }
+ 
+    try:
+        order = client.order.create(data=order_data)
+        return JsonResponse({
+            'order_id':  order['id'],
+            'amount':    order['amount'],
+            'currency':  order['currency'],
+            'key_id':    settings.RAZORPAY_KEY_ID,
+            'name':      request.user.first_name,
+            'email':     request.user.email,
+            'phone':     data.get('phone', ''),
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+ 
+ 
+# VIEW 2: verify_razorpay_payment
+# This verifies the payment signature and creates the booking
+@login_required
+def verify_razorpay_payment(request):
+    import razorpay
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+ 
+    from .models import ServiceProvider, Category, Booking, TimeSlot
+ 
+    data            = json.loads(request.body)
+    razorpay_order_id   = data.get('razorpay_order_id')
+    razorpay_payment_id = data.get('razorpay_payment_id')
+    razorpay_signature  = data.get('razorpay_signature')
+ 
+    # Verify signature
+    client = razorpay.Client(
+        auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+    )
+    params = {
+        'razorpay_order_id':   razorpay_order_id,
+        'razorpay_payment_id': razorpay_payment_id,
+        'razorpay_signature':  razorpay_signature,
+    }
+ 
+    try:
+        client.utility.verify_payment_signature(params)
+    except razorpay.errors.SignatureVerificationError:
+        return JsonResponse({'success': False, 'error': 'Payment verification failed'}, status=400)
+ 
+    # Payment verified — create booking
+    provider_id    = data.get('provider_id')
+    category_id    = data.get('category_id')
+    scheduled_date = data.get('date')
+    scheduled_time = data.get('slot_time')
+    full_name      = data.get('full_name', '').strip()
+    phone          = data.get('phone', '').strip()
+    address        = data.get('address', '').strip()
+    city           = data.get('city', '').strip()
+    description    = data.get('description', '').strip()
+    payment_method = data.get('payment_method', 'razorpay')
+ 
+    try:
+        provider = ServiceProvider.objects.get(id=provider_id)
+        category = Category.objects.get(id=category_id) if category_id else provider.category
+    except (ServiceProvider.DoesNotExist, Category.DoesNotExist):
+        return JsonResponse({'success': False, 'error': 'Invalid provider'}, status=400)
+ 
+    slot, created = TimeSlot.objects.get_or_create(
+        provider=provider,
+        date=scheduled_date,
+        slot_time=scheduled_time,
+        defaults={'booked_count': 0}
+    )
+ 
+    if slot.is_full:
+        return JsonResponse({'success': False, 'error': 'Slot is full'}, status=400)
+ 
+    booking = Booking.objects.create(
+        user           = request.user,
+        provider       = provider,
+        category       = category,
+        time_slot      = slot,
+        service_name   = category.name,
+        description    = description,
+        address        = address,
+        city           = city,
+        phone          = phone,
+        scheduled_date = scheduled_date,
+        scheduled_time = scheduled_time,
+        payment_method = 'razorpay',
+        status         = 'pending',
+        notes          = f'Booked by: {full_name} | RazorPay: {razorpay_payment_id}',
+    )
+ 
+    slot.booked_count += 1
+    slot.save()
+ 
+    return JsonResponse({
+        'success':    True,
+        'booking_id': booking.id,
+        'message':    f'Booking #{booking.id} confirmed!',
+    })
+ 

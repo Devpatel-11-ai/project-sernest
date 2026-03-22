@@ -49,6 +49,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
 ]
 
 ROOT_URLCONF = 'sernest.urls'
@@ -153,3 +154,19 @@ SESSION_COOKIE_AGE = 3600  # seconds
 
 # Don't save session if not modified
 SESSION_SAVE_EVERY_REQUEST = False
+
+# Allow Razorpay iframe to load on localhost (non-HTTPS)
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None
+SECURE_REFERRER_POLICY = "no-referrer-when-downgrade"
+
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000', 'http://localhost:8000']
+ 
+# Content Security Policy — allow Razorpay scripts and iframes
+CSP_DEFAULT_SRC = ("'self'", "https://*.razorpay.com")
+CSP_SCRIPT_SRC  = ("'self'", "'unsafe-inline'", "https://*.razorpay.com", "https://checkout.razorpay.com")
+CSP_FRAME_SRC   = ("'self'", "https://*.razorpay.com", "https://api.razorpay.com")
+CSP_IMG_SRC     = ("'self'", "data:", "https://*.razorpay.com")
+CSP_CONNECT_SRC = ("'self'", "https://*.razorpay.com", "https://lumberjack.razorpay.com")
+
+RAZORPAY_KEY_ID     = 'rzp_test_SU9LonpCivtJYb'
+RAZORPAY_KEY_SECRET = 'Pm93x67q9wH0hAvMwugmER95'

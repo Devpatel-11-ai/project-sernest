@@ -55,4 +55,7 @@ urlpatterns = [
   path('booking/<int:booking_id>/complete/',       views.provider_complete_booking,  name='provider_complete_booking'),
   path('booking/<int:booking_id>/cancel/',         views.user_cancel_booking,        name='user_cancel_booking'),
   path('booking/<int:booking_id>/rate/', views.rate_booking, name='rate_booking'),
+
+  path('payment/create-order/', views.create_razorpay_order,  name='create_razorpay_order'),
+  path('payment/verify/',       views.verify_razorpay_payment, name='verify_razorpay_payment'),
   ]
