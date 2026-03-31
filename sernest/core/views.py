@@ -741,6 +741,7 @@ def create_booking(request):
         payment_method = payment_method,
         status         = 'pending',
         notes          = f'Booked by: {full_name}',
+        total_amount   = settings.FIXED_BOOKING_PRICE
     )
  
     # Increment slot counter

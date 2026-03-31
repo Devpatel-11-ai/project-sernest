@@ -168,5 +168,7 @@ CSP_FRAME_SRC   = ("'self'", "https://*.razorpay.com", "https://api.razorpay.com
 CSP_IMG_SRC     = ("'self'", "data:", "https://*.razorpay.com")
 CSP_CONNECT_SRC = ("'self'", "https://*.razorpay.com", "https://lumberjack.razorpay.com")
 
+FIXED_BOOKING_PRICE = 100
+
 RAZORPAY_KEY_ID     = 'rzp_test_SU9LonpCivtJYb'
 RAZORPAY_KEY_SECRET = 'Pm93x67q9wH0hAvMwugmER95'

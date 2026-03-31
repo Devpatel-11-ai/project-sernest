@@ -186,20 +186,17 @@ class Booking(models.Model):
     def __str__(self):
         return f"Booking #{self.id} – {self.service_name} ({self.status})"
 
-    def calculate_pricing(self, estimate):
-        """Calculate and save pricing breakdown"""
+    def calculate_pricing(self, estimate=None):
+        """Override pricing to fixed booking price"""
+        from django.conf import settings
         from decimal import Decimal
-        estimate = Decimal(str(estimate))
-        margin   = round(estimate * Decimal('0.05'), 2)       # 5% company margin
-        subtotal = estimate + margin
-        gst      = round(subtotal * Decimal('0.18'), 2)       # 18% GST
-        total    = subtotal + gst
-
-        self.estimate_amount = estimate
-        self.company_margin  = margin
-        self.gst_amount      = gst
-        self.total_amount    = total
-        return total
+        
+        fixed_price = Decimal(str(settings.FIXED_BOOKING_PRICE))
+        self.estimate_amount = fixed_price
+        self.company_margin  = 0
+        self.gst_amount      = 0
+        self.total_amount    = fixed_price
+        return fixed_price
 
     class Meta:
         ordering = ['-created_at']

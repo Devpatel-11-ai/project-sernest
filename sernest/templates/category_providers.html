@@ -515,10 +515,14 @@
       <!-- Step 2 -->
       <div class="bk-panel" id="bkS2">
         <div class="price-box">
-          <div class="price-row"><span class="price-lbl">Service Fee</span><span class="price-val" id="pFee">₹350</span></div>
-          <div class="price-row"><span class="price-lbl">Visit Charge</span><span class="price-val">₹49</span></div>
-          <div class="price-row"><span class="price-lbl">GST (18%)</span><span class="price-val" id="pGst">₹72</span></div>
-          <div class="price-row"><span class="price-lbl" style="font-weight:700;color:#f0f0f5">Total Payable</span><span class="price-total" id="pTotal">₹471</span></div>
+          <div class="price-row">
+            <span class="price-lbl">Booking Fee</span>
+            <span class="price-val">₹100</span>
+          </div>
+          <div class="price-row">
+            <span class="price-lbl">Total Payable</span>
+            <span class="price-total">₹100</span>
+          </div>
         </div>
         <div class="f-group">
           <label class="f-label">Payment Method</label>
@@ -642,6 +646,10 @@ let step = 1, prov = {};
 let slotData = [], selectedSlot = null;
 
 function openBookingFromCard(el) {
+    window.prov = {
+    name: el.dataset.name,
+    service: el.dataset.service
+  };
   openBooking({
     id:         el.dataset.providerId,
     categoryId: el.dataset.categoryId,
@@ -665,11 +673,8 @@ function openBooking(p) {
   mi.innerHTML = p.photo
     ? '<img src="' + p.photo + '" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML=\'<span style=font-size:1.4rem;opacity:.4>👷</span>\'">'
     : '<span style="font-size:1.4rem;opacity:.4">👷</span>';
-  const fee = 200 + p.experience * 25;
-  const gst = Math.round((fee + 49) * 0.18);
-  document.getElementById('pFee').textContent   = '₹' + fee;
-  document.getElementById('pGst').textContent   = '₹' + gst;
-  document.getElementById('pTotal').textContent = '₹' + (fee + 49 + gst);
+  const feeEl = document.getElementById("pFee");
+  if (feeEl) feeEl.textContent = "₹100";
   renderStep();
   document.getElementById('bkOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -796,8 +801,7 @@ function startRazorpay() {
   const btn = document.getElementById('btnNext');
   btn.textContent = 'Opening payment…';
   btn.disabled = true;
-  const totalText = document.getElementById('pTotal').textContent.replace('₹', '').replace(',', '');
-  const amount    = parseFloat(totalText) || 100;
+  const amount = 100;
   const phone     = document.getElementById('fPhone').value.trim();
   fetch('/payment/create-order/', {
     method: 'POST',
@@ -820,7 +824,10 @@ function startRazorpay() {
       order_id:    order.order_id,
       prefill:     { name: order.name, email: order.email, contact: order.phone },
       theme:       { color: '#7c6ef5' },
-      handler: function(response) { verifyAndBook(response); },
+      handler: function(response) {
+        console.log("BEFORE SUCCESS prov:", prov);  // ✅ ADD THIS LINE
+        verifyAndBook(response);
+      },
       modal:   { ondismiss: function() { btn.textContent = '💳 Pay Now'; btn.disabled = false; } },
     };
     const rzp = new Razorpay(options);
@@ -891,17 +898,32 @@ function submitBookingDirect() {
 
 /* ── SUCCESS SCREEN ────────────────────────────────────────── */
 function showBookingSuccess(paymentId) {
+  console.log("PROV:", prov);
+
   const ref = paymentId
     ? 'RZP-' + paymentId.slice(-8).toUpperCase()
-    : 'SN-'  + Date.now().toString().slice(-8);
-  document.getElementById('bkRef').textContent  = ref;
-  document.getElementById('cfmProv').textContent = prov.name;
-  document.getElementById('cfmSvc').textContent  = prov.service || '{{ category.name }}';
-  document.getElementById('cfmDT').textContent   =
-    document.getElementById('fDate').value + ' · ' + (selectedSlot?.label || '–');
-  document.getElementById('cfmAmt').textContent  = paymentId
-    ? document.getElementById('pTotal').textContent + ' (Paid ✓)'
-    : 'Cash on arrival';
+    : 'SN-' + Date.now().toString().slice(-8);
+
+  const refEl = document.getElementById("cfmRef");
+  if (refEl) refEl.textContent = ref;
+
+  const provEl = document.getElementById("cfmProv");
+  if (provEl) provEl.textContent = prov?.name || "-";
+
+  const svcEl = document.getElementById("cfmSvc");
+  if (svcEl) svcEl.textContent = prov?.service || "-";
+
+  const dateEl = document.getElementById("cfmDT");
+  const dateInput = document.getElementById("fDate");
+  if (dateEl) dateEl.textContent = dateInput?.value || "-";
+
+  const amtEl = document.getElementById("cfmAmt");
+  if (amtEl) {
+    amtEl.textContent = paymentId
+      ? "₹100 (Paid ✓)"
+      : "₹100 (Cash on arrival)";
+  }
+
   step = 3;
   renderStep();
 }
