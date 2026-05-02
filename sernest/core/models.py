@@ -120,7 +120,7 @@ class TimeSlot(models.Model):
         ('16:00', '4–5 PM'),
         ('17:00', '5–6 PM'),
     ]
-    MAX_BOOKINGS = 5  # max bookings per slot per provider
+    MAX_BOOKINGS = 1  # max bookings per slot per provider
 
     provider    = models.ForeignKey(ServiceProvider, on_delete=models.CASCADE, related_name='time_slots')
     date        = models.DateField()

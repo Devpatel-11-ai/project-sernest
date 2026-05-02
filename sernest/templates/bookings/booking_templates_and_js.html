@@ -117,6 +117,94 @@ function applyFS() {
 
 // ── BOOKING MODAL ──
 let step = 1, prov = {}, selectedSlot = null;
+/* ── ISSUE CHECKLIST MAP ───────────────────────────────────── */
+const ISSUE_MAP = {
+    'electrician':        ['AC Repair / Service','Cooler Repair / Service','Fan Repair / Service','Wiring / Short Circuit','Switchboard / Socket Issue','MCB / Fuse Problem','Inverter / Battery Issue','New Wiring / Installation','Light Fitting','Other'],
+    'plumber':            ['Pipe Leakage / Burst','Tap / Faucet Repair','Drain Blockage / Cleaning','Water Tank Issue','Toilet / Flush Repair','Basin / Sink Fitting','Geyser Installation','Bathroom Fitting','Sewage Problem','Other'],
+    'ac repair':          ['AC Not Cooling','AC Gas Refill','AC Service / Deep Clean','AC Making Noise','AC Water Leakage','AC Remote Issue','AC Installation / Uninstallation','AC PCB / Electrical Fault','AC Compressor Issue','Other'],
+    'cleaning':           ['Home Deep Cleaning','Kitchen Cleaning','Bathroom Cleaning','Sofa / Carpet Cleaning','Water Tank Cleaning','Office Cleaning','Post-Construction Cleaning','Terrace / Balcony Cleaning','Other'],
+    'carpenter':          ['Door / Window Repair','Furniture Repair','New Furniture Making','Cupboard / Wardrobe Work','False Ceiling / POP','Wood Polishing','Lock / Hinge Fitting','Bed / Chair Repair','Other'],
+    'painter':            ['Interior Wall Painting','Exterior Wall Painting','Wood / Furniture Painting','Waterproofing','Texture / Design Painting','Roof Painting','Gate / Grill Painting','Other'],
+    'appliance repair':   ['Washing Machine Repair','Refrigerator Repair','Microwave Repair','TV / LED Repair','Water Purifier Repair','Mixer / Grinder Repair','Geyser Repair','Dishwasher Repair','Other'],
+    'pest control':       ['Cockroach Treatment','Termite Treatment','Mosquito / Flies Control','Rodent / Rat Control','Bed Bugs Treatment','Ant Control','General Pest Control','Other'],
+    'ro service':         ['RO Not Working','RO Service / Filter Change','RO Water Taste Issue','RO Installation','RO Low Water Flow','RO Membrane Change','RO Leakage','Other'],
+    'cctv installation':  ['New CCTV Installation','CCTV Camera Repair','DVR / NVR Setup','CCTV Not Recording','Night Vision Issue','Cable / Wire Issue','Mobile View Setup','Other'],
+    'home shifting':      ['Full Home Shifting','Partial / Few Items','Furniture Disassemble & Assemble','Packing & Unpacking','Vehicle / Loading Required','Same City Shifting','Intercity Shifting','Other'],
+    'gardening':          ['Garden Maintenance','Plant Trimming / Pruning','Lawn Mowing','New Plant Setup','Pot / Terrace Garden','Pest Control for Plants','Soil & Fertilizer Work','Other'],
+    'welder':             ['Gate / Grill Welding','Window Grill Repair','Furniture Metal Work','Railing / Staircase Work','Sheet Metal Work','Pipe Welding','Custom Metal Fabrication','Other'],
+    'mason':              ['Wall Construction / Repair','Plastering Work','Tile / Floor Laying','Waterproofing','Roof Work','Staircase Construction','Boundary Wall','Other'],
+    'tile worker':        ['Floor Tile Laying','Wall Tile Work','Tile Repair / Replacement','Bathroom Tiling','Kitchen Tiling','Grouting / Finishing','Other'],
+    'driver':             ['Daily Cab / Pickup Drop','Airport / Station Transfer','Outstation Trip','Monthly Driver Hire','Event / Wedding Driver','Night Shift Drive','Other'],
+    'delivery helper':    ['Home Delivery Assistance','Loading / Unloading','Courier Pickup & Drop','Grocery Delivery','Document Delivery','Other'],
+    'security guard':     ['Residential Security','Office / Shop Security','Event Security','Night Security','CCTV Monitoring Duty','Parking Duty','Other'],
+    'cook':               ['Daily Cooking (Home)','Party / Event Cooking','Tiffin Service','Special Diet Cooking','Kitchen Help / Assistant','Catering Assistance','Other'],
+    'house helper':       ['Daily House Cleaning','Utensil Washing','Clothes Washing / Ironing','Sweeping & Mopping','Full House Help','Part-Time Help','Other'],
+    'babysitter':         ['Daytime Babysitting','Night Care','Full Day Care','Weekend Babysitting','Newborn Care','Toddler Care','Other'],
+    'elder care assistant':['Daily Elder Care','Medicine Reminder','Doctor Visit Assistance','Physiotherapy Assistance','Night Care','Companionship / Talking','Other'],
+    'tailor':             ['Clothes Stitching','Alteration / Repair','Blouse / Salwar Stitching','Suit / Shirt Stitching','Curtain / Bed Sheet Stitching','Embroidery Work','Other'],
+    'mechanic':           ['Two-Wheeler Repair','Four-Wheeler Repair','Engine Servicing','Tyre Change / Puncture','Battery Issue','AC / Cooling Repair','Brake / Clutch Issue','Other'],
+    'furniture assembler':['New Furniture Assembly','IKEA / Flat Pack Assembly','Bed / Wardrobe Assembly','Office Furniture Setup','Disassembly for Shifting','Repair / Tightening','Other'],
+  };
+
+function getIssueKey(serviceName) {
+  if (!serviceName) return null;
+  return serviceName.toLowerCase().trim();
+}
+
+function renderIssueChecklist(serviceName) {
+  const key      = serviceName ? serviceName.toLowerCase().trim() : '';
+  const issues   = ISSUE_MAP[key] || null;
+  const listEl   = document.getElementById('issueChecklist');
+  const otherGrp = document.getElementById('otherDescGroup');
+  const fallback = document.getElementById('fallbackDesc');
+  const label    = document.querySelector('#issueGroup .f-label');
+
+  if (!listEl) return;
+
+  listEl.innerHTML = '';
+  if (otherGrp) otherGrp.style.display = 'none';
+
+  if (!issues) {
+    if (fallback) fallback.style.display = '';
+    listEl.style.display = 'none';
+    if (label) label.textContent = 'Describe Your Requirement (optional)';
+    return;
+  }
+
+  if (fallback) fallback.style.display = 'none';
+  listEl.style.display = 'grid';
+  if (label) label.textContent = 'Select Issue Type';
+
+  issues.forEach(issue => {
+    const id  = 'issue_' + issue.replace(/\W+/g, '_');
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 10px;cursor:pointer;transition:all .2s;font-family:Poppins,sans-serif;';
+    div.innerHTML = `
+      <input type="checkbox" id="${id}" value="${issue}"
+        style="accent-color:#7c6ef5;width:15px;height:15px;cursor:pointer;flex-shrink:0">
+      <label for="${id}"
+        style="font-size:.76rem;color:rgba(255,255,255,.62);cursor:pointer;font-family:Poppins,sans-serif;line-height:1.3">
+        ${issue}
+      </label>`;
+    const cb = div.querySelector('input');
+    cb.addEventListener('change', () => {
+      div.style.background  = cb.checked ? 'rgba(124,110,245,.12)' : 'rgba(255,255,255,.03)';
+      div.style.borderColor = cb.checked ? '#7c6ef5' : 'rgba(255,255,255,.08)';
+      const anyOther = [...document.querySelectorAll('#issueChecklist input[value="Other"]')].some(x => x.checked);
+      if (otherGrp) otherGrp.style.display = anyOther ? '' : 'none';
+    });
+    div.addEventListener('click', e => { if (e.target !== cb) cb.click(); });
+    listEl.appendChild(div);
+  });
+}
+
+function getSelectedIssues() {
+  const checked = [...document.querySelectorAll('#issueChecklist input[type=checkbox]:checked')];
+  const issues  = checked.map(c => c.value).filter(v => v !== 'Other');
+  const other   = document.getElementById('fDesc')?.value?.trim() || '';
+  if (other) issues.push('Other: ' + other);
+  return issues.join(', ');
+}
 
 function openBookingFromCard(el) {
   openBooking({
@@ -147,6 +235,7 @@ function openBooking(p) {
   renderStep();
   document.getElementById('bkOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
+  renderIssueChecklist(p.service);
 }
 
 function closeModal() {
