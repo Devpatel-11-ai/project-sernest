@@ -171,11 +171,14 @@ class Booking(models.Model):
     status         = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
 
     # Pricing fields — filled when provider accepts
-    estimate_amount  = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # provider's estimate
-    company_margin   = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # 5% of estimate
-    gst_amount       = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # 18% of (estimate + margin)
-    total_amount     = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # final total
-    payment_method   = models.CharField(max_length=20, blank=True, default='cash')
+    estimate_amount   = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    estimate_min      = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # provider's min
+    estimate_max      = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # provider's max
+    estimate_approved = models.BooleanField(default=False)   # user approved the estimate
+    company_margin    = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    gst_amount        = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total_amount      = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    payment_method    = models.CharField(max_length=20, blank=True, default='cash')
 
     notes            = models.TextField(blank=True, default='')
     provider_notes   = models.TextField(blank=True, default='')  # provider's message on accept/reject
@@ -200,6 +203,8 @@ class Booking(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+estimate_approved = models.BooleanField(default=False)  # user approved provider estimate
 
 # ══════════════════════════════════════════════════════════════
 #  UPDATED : rating system 

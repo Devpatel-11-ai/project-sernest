@@ -758,35 +758,72 @@ def create_booking(request):
 @login_required
 def provider_accept_booking(request, booking_id):
     from .models import Booking, ServiceProvider
- 
+
     try:
         provider = ServiceProvider.objects.get(email=request.user.email)
     except ServiceProvider.DoesNotExist:
         messages.error(request, '❌ Provider profile not found.')
         return redirect('core:provider_dashboard')
- 
+
     booking = get_object_or_404(Booking, id=booking_id, provider=provider)
- 
+
     if request.method == 'POST':
-        estimate       = request.POST.get('estimate', 0)
-        provider_notes = request.POST.get('provider_notes', '').strip()
- 
+        estimate_min_raw = request.POST.get('estimate', 0)
+        estimate_max_raw = request.POST.get('estimate_max', 0)
+        provider_notes   = request.POST.get('provider_notes', '').strip()
+
         try:
-            estimate = float(estimate)
-            if estimate <= 0:
+            estimate_min = float(estimate_min_raw)
+            estimate_max = float(estimate_max_raw) if estimate_max_raw else estimate_min
+            if estimate_min <= 0:
                 raise ValueError('Estimate must be positive')
+            if estimate_max < estimate_min:
+                estimate_max = estimate_min
         except (ValueError, TypeError):
             messages.error(request, '❌ Please enter a valid estimate amount.')
             return redirect('core:provider_dashboard')
- 
-        # Calculate pricing
-        booking.calculate_pricing(estimate)
-        booking.provider_notes = provider_notes
-        booking.status         = 'accepted'
+
+        from decimal import Decimal
+        margin = round(estimate_min * 0.05, 2)
+        gst    = round((estimate_min + margin) * 0.18, 2)
+        total  = round(estimate_min + margin + gst, 2)
+
+        booking.estimate_min    = Decimal(str(estimate_min))
+        booking.estimate_max    = Decimal(str(estimate_max))
+        booking.estimate_amount = Decimal(str(estimate_min))
+        booking.company_margin  = Decimal(str(margin))
+        booking.gst_amount      = Decimal(str(gst))
+        booking.total_amount    = Decimal(str(total))
+        booking.provider_notes  = provider_notes
+        booking.status          = 'accepted'
         booking.save()
- 
-        messages.success(request, f'✅ Booking #{booking.id} accepted. Total: ₹{booking.total_amount}')
+
+        messages.success(request, f'✅ Booking #{booking.id} accepted. Estimate: ₹{estimate_min}–₹{estimate_max}')
         return redirect('core:provider_dashboard')
+
+    # GET — show accept form
+    return render(request, 'bookings/provider_accept.html', {'booking': booking})
+
+    # Save both min and max
+    booking.estimate_min    = estimate_min
+    booking.estimate_max    = estimate_max
+    booking.estimate_amount = estimate_min  # base for pricing calc
+    booking.provider_notes  = provider_notes
+    booking.status          = 'accepted'
+
+    # Recalculate pricing based on min estimate
+    from decimal import Decimal
+    margin = round(estimate_min * 0.05, 2)
+    gst    = round((estimate_min + margin) * 0.18, 2)
+    total  = round(estimate_min + margin + gst, 2)
+    booking.company_margin = Decimal(str(margin))
+    booking.gst_amount     = Decimal(str(gst))
+    booking.total_amount   = Decimal(str(total))
+
+    booking.save()
+
+    messages.success(request, f'✅ Booking #{booking.id} accepted. Estimate: ₹{estimate_min}–₹{estimate_max}')
+    return redirect('core:provider_dashboard')
  
     # GET — show accept form
     return render(request, 'bookings/provider_accept.html', {'booking': booking})
@@ -1107,3 +1144,30 @@ def verify_razorpay_payment(request):
         'message':    f'Booking #{booking.id} confirmed!',
     })
  
+# ──────────────────────────────────────────────────────────────
+#  UPDATED: estimate button — with real booking data
+# ──────────────────────────────────────────────────────────────
+
+
+
+def approve_estimate(request, booking_id):
+    from .models import Booking
+    booking = get_object_or_404(Booking, id=booking_id, user=request.user)
+    if booking.status == 'accepted' and booking.estimate_amount > 0:
+        booking.estimate_approved = True
+        booking.save()
+        messages.success(request, f'✅ Estimate of ₹{booking.estimate_amount} approved for booking #{booking.id}.')
+    return redirect('core:user_dashboard')
+
+
+# ADD THIS NEW VIEW:
+def approve_estimate(request, booking_id):
+    from .models import Booking
+    booking = get_object_or_404(Booking, id=booking_id, user=request.user)
+    if booking.status == 'accepted' and booking.estimate_min > 0 and not booking.estimate_approved:
+        booking.estimate_approved = True
+        booking.save()
+        messages.success(request, f'✅ Estimate approved for booking #{booking.id}!')
+    else:
+        messages.error(request, '❌ Cannot approve this estimate.')
+    return redirect('core:user_dashboard')

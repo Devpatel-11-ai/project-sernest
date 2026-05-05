@@ -72,8 +72,13 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;pad
 
         <div class="f-group">
           <label class="f-label">Your Service Estimate (₹) *</label>
-          <input class="f-input" type="number" name="estimate" id="estimateInp"
-            placeholder="e.g. 500" min="1" required oninput="calcPricing(this.value)">
+          <div style="display:flex;align-items:center;gap:10px">
+            <input class="f-input" type="number" name="estimate" id="estimateInp"
+              placeholder="Min price" min="1" required oninput="calcPricing(this.value)" style="flex:1;width:auto">
+            <span style="color:var(--muted);font-size:.85rem;white-space:nowrap;font-weight:600">to</span>
+            <input class="f-input" type="number" name="estimate_max" id="estimateMaxInp"
+              placeholder="Max price" min="1" style="flex:1;width:auto">
+          </div>
           <div style="font-size:.73rem;color:var(--muted);margin-top:5px">
             Enter your base charge. Platform margin (5%) and GST (18%) will be added automatically.
           </div>
@@ -90,7 +95,7 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;pad
         <div class="f-group" style="margin-top:16px">
           <label class="f-label">Message to Customer (optional)</label>
           <textarea class="f-textarea" name="provider_notes"
-            placeholder="e.g. I will arrive between 9–10 AM. Please keep the area accessible."></textarea>
+            placeholder="e.g. I will arrive between 9–10 AM. Please keep the area accessible.">⚠️Note: Estimate Cost Are Changes Depend On Work , Condition and Cost Of Accessories Needed  In Work.</textarea>
         </div>
 
         <button type="submit" class="btn-accept">✅ Accept Booking & Send Estimate</button>

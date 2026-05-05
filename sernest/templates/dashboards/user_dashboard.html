@@ -117,6 +117,7 @@
 .bk-table-wrap {
   background:var(--dash-card); border:1px solid var(--dash-border);
   border-radius:14px; overflow:hidden; margin-bottom:28px;
+  overflow-x:auto;
 }
 .bk-table { width:100%; border-collapse:collapse; }
 .bk-table th {
@@ -124,10 +125,12 @@
   font-weight:600; color:var(--text-muted); text-transform:uppercase;
   letter-spacing:.06em; font-family:'Poppins',sans-serif;
   border-bottom:1px solid var(--dash-border); background:var(--dash-card2);
+  white-space:nowrap;
 }
 .bk-table td {
   padding:14px 18px; font-size:0.85rem; font-family:'Poppins',sans-serif;
   color:var(--text); border-bottom:1px solid var(--dash-border);
+  white-space:nowrap;
 }
 .bk-table tr:last-child td { border-bottom:none; }
 .bk-table tr:hover td { background:rgba(255,255,255,0.02); }
@@ -140,6 +143,34 @@
 .s-onway    { background:rgba(139,92,246,0.15); color:#c4b5fd; border:1px solid rgba(139,92,246,0.3); }
 .s-completed{ background:rgba(34,197,94,0.15);  color:#4ade80; border:1px solid rgba(34,197,94,0.3); }
 .s-cancelled{ background:rgba(239,68,68,0.15);  color:#f87171; border:1px solid rgba(239,68,68,0.3); }
+
+/* ── ESTIMATE RANGE ── */
+.est-range {
+  display:flex; flex-direction:column; gap:2px;
+}
+.est-range-val {
+  font-size:0.82rem; font-weight:600; color:#4ade80;
+}
+.est-range-label {
+  font-size:0.68rem; color:var(--text-muted);
+}
+.est-pending {
+  font-size:0.78rem; color:var(--text-muted);
+}
+
+/* ── APPROVE BUTTON ── */
+.btn-approve {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:32px; height:32px; border-radius:8px;
+  background:rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.35);
+  color:#4ade80; font-size:1rem; cursor:pointer;
+  transition:all .2s; text-decoration:none;
+  font-family:'Poppins',sans-serif; margin-right:5px;
+}
+.btn-approve:hover {
+  background:rgba(34,197,94,0.25); border-color:#4ade80;
+  color:#4ade80; transform:scale(1.1);
+}
 
 /* ── 2-COL GRID ── */
 .two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:28px; }
@@ -436,11 +467,7 @@
 
    <!-- AI ASSISTANT -->
     <div id="ai">
-
-      <!-- Panel -->
       <div class="ai-panel">
-
-        <!-- Header -->
         <div class="ai-header">
           <div class="ai-header-left">
             <div class="ai-logo">
@@ -458,7 +485,6 @@
           <button class="ai-clear-btn" onclick="clearAI()">🗑 Clear</button>
         </div>
 
-        <!-- Quick chips -->
         <div class="ai-chips-wrap">
           <div class="ai-chips-label">Quick questions</div>
           <div class="ai-quick-chips">
@@ -473,13 +499,11 @@
           </div>
         </div>
 
-        <!-- Thinking indicator -->
         <div class="ai-thinking" id="aiThinking">
           <div class="ai-dots"><span></span><span></span><span></span></div>
           Analyzing your question…
         </div>
 
-        <!-- Response Card -->
         <div class="ai-response-card" id="aiResponseCard">
           <div class="ai-rc-header">
             <span class="ai-rc-icon">🤖</span>
@@ -509,7 +533,6 @@
           </div>
         </div>
 
-        <!-- Input -->
         <div class="ai-input-wrap">
           <div class="ai-input-row">
             <input class="ai-input" id="aiInput" type="text"
@@ -539,6 +562,7 @@
               <th>Provider</th>
               <th>Date</th>
               <th>Amount</th>
+              <th>Estimate Range</th>
               <th>Status</th>
               <th>Action</th>
             </tr>
@@ -549,13 +573,41 @@
               <td>{{ b.service_name }}</td>
               <td>{{ b.provider.name|default:"–" }}</td>
               <td>{{ b.scheduled_date|default:"–" }}</td>
+
+              <!-- Amount -->
               <td>
                 {% if b.total_amount > 0 %}
                   <span style="color:#4ade80;font-weight:600">₹{{ b.total_amount }}</span>
                 {% else %}
-                  <span style="color:var(--text-muted);font-size:.78rem">Pending estimate</span>
+                  <span class="est-pending">Pending estimate</span>
                 {% endif %}
               </td>
+
+              <!-- Estimate Range (Min – Max) -->
+              <td>
+                {% if b.estimate_min and b.estimate_min > 0 %}
+                <div class="est-range">
+                  <div>
+                    <span class="est-range-val">₹{{ b.estimate_min }}</span>
+                    {% if b.estimate_max and b.estimate_max > b.estimate_min %}
+                     <span style="color:var(--text-muted);font-size:.8rem;margin:0 3px">–</span>
+                      <span class="est-range-val">₹{{ b.estimate_max }}</span>
+                      {% endif %}
+                    </div>
+                     <div class="est-range-label">
+                      {% if b.estimate_approved %}
+                      <span style="color:#4ade80">✓ Approved</span>
+                       {% else %}
+                        Min – Max Estimate
+                         {% endif %}
+                         </div>
+                         </div>
+                         {% else %}
+                          <span class="est-pending">–</span>
+                           {% endif %}
+                          </td>
+
+              <!-- Status -->
               <td>
                 <span class="status-badge
                   {% if b.status == 'pending' %}s-pending
@@ -571,20 +623,37 @@
                   {% else %}🔴 Cancelled{% endif %}
                 </span>
               </td>
-             <td>
-              {% if b.status == 'pending' or b.status == 'accepted' %}
-              <a href="{% url 'core:user_cancel_booking' b.id %}"
-              class="mini-btn mini-btn-ghost"
-              onclick="return confirm('Cancel booking #{{ b.id }}?')">Cancel</a>
-              {% elif b.status == 'completed' and not b.rating %}
-              <a href="{% url 'core:rate_booking' b.id %}"
-              class="mini-btn mini-btn-primary">⭐ Rate</a>
-              {% elif b.status == 'completed' and b.rating %}
-              <span style="color:#f59e0b;font-size:.8rem">⭐ {{ b.rating.stars }}/5 Rated</span>
-              {% else %}
-              <button class="mini-btn mini-btn-ghost" disabled style="opacity:.4">Done</button>
-              {% endif %}
-            </td>
+
+              <!-- Action -->
+              <td>
+                 {% if b.status == 'accepted' and b.estimate_min and b.estimate_min > 0 and not b.estimate_approved %}
+                  <a href="{% url 'core:approve_estimate' b.id %}"
+                     class="btn-approve"
+                     title="Approve Estimate ₹{{ b.estimate_min }}{% if b.estimate_max %} – ₹{{ b.estimate_max }}{% endif %}"
+                     onclick="return confirm('Approve estimate of ₹{{ b.estimate_min }}{% if b.estimate_max %} – ₹{{ b.estimate_max }}{% endif %} for booking #{{ b.id }}?')">✓</a>
+                  <a href="{% url 'core:user_cancel_booking' b.id %}"
+                     class="mini-btn mini-btn-ghost"
+                     onclick="return confirm('Cancel booking #{{ b.id }}?')">Cancel</a>
+                {% elif b.status == 'accepted' and b.estimate_approved %}
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="color:#4ade80;font-size:.8rem;white-space:nowrap">✓ Approved</span>
+                  <a href="{% url 'core:user_cancel_booking' b.id %}"
+                  class="mini-btn mini-btn-ghost"
+                   onclick="return confirm('Cancel approved booking #{{ b.id }}? This cannot be undone.')">Cancel</a>
+                  </div>
+                {% elif b.status == 'pending' %}
+                  <a href="{% url 'core:user_cancel_booking' b.id %}"
+                     class="mini-btn mini-btn-ghost"
+                     onclick="return confirm('Cancel booking #{{ b.id }}?')">Cancel</a>
+                {% elif b.status == 'completed' and not b.rating %}
+                  <a href="{% url 'core:rate_booking' b.id %}"
+                     class="mini-btn mini-btn-primary">⭐ Rate</a>
+                {% elif b.status == 'completed' and b.rating %}
+                  <span style="color:#f59e0b;font-size:.8rem">⭐ {{ b.rating.stars }}/5 Rated</span>
+                {% else %}
+                  <button class="mini-btn mini-btn-ghost" disabled style="opacity:.4">Done</button>
+                {% endif %}
+              </td>
             </tr>
             {% endfor %}
           </tbody>
@@ -771,7 +840,6 @@ function sendAI() {
   const card     = document.getElementById('aiResponseCard');
   const sendBtn  = document.getElementById('aiSendBtn');
 
-  // Show thinking
   card.classList.remove('show');
   thinking.classList.add('show');
   sendBtn.disabled = true;
@@ -784,7 +852,6 @@ function sendAI() {
 
     const r = getAIResponse(q);
 
-    // Fill card sections
     document.getElementById('aiRcTitle').textContent   = '🤖 ' + r.title;
     document.getElementById('aiRcCauses').innerHTML    = r.causes.replace(/\n/g, '<br>').replace(/•/g, '<span style="color:var(--accent2)">•</span>');
     document.getElementById('aiRcCost').textContent    = r.cost;
